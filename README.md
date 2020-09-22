@@ -1,6 +1,6 @@
 # Fyde - Terraform modules
 
-![Fyde](https://raw.githubusercontent.com/fyde/docs/master/imgs/fyde-logo.png)
+![Fyde](./misc/fyde-logo.png)
 
 Website: <https://fyde.com>
 

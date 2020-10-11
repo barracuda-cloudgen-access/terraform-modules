@@ -62,6 +62,21 @@ variable "nlb_subnets" {
 #
 # Auto Scaling Group
 #
+
+variable "asg_ami" {
+  description = <<EOF
+  Defaults to 'fyde' to use the AMI maintained and secured by Fyde.
+  Suported types are CentOS or AWS Linux based"
+  EOF
+  type        = string
+  default     = "fyde"
+
+  validation {
+    condition     = can(regex("^(fyde|ami-.+)$", var.asg_ami))
+    error_message = "AllowedValues: fyde or AMI id starting with 'ami-'."
+  }
+}
+
 variable "asg_desired_capacity" {
   description = "The number of Amazon EC2 instances that should be running in the auto scaling group"
   type        = number

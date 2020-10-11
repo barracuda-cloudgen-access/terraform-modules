@@ -168,6 +168,8 @@ resource "aws_autoscaling_group" "asg" {
 #
 
 data "aws_ami" "fyde_access_proxy" {
+  count = var.asg_ami == "fyde" ? 1 : 0
+
   most_recent = true
 
   filter {
@@ -188,10 +190,9 @@ data "aws_ami" "fyde_access_proxy" {
 #
 
 resource "aws_launch_configuration" "launch_config" {
-
   associate_public_ip_address = var.launch_cfg_associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.profile.id
-  image_id                    = data.aws_ami.fyde_access_proxy.id
+  image_id                    = coalesce(data.aws_ami.fyde_access_proxy[0].id, var.asg_ami)
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
   name_prefix                 = "fyde-access-proxy-"

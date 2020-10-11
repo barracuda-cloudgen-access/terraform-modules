@@ -17,6 +17,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| asg\_ami | Defaults to 'fyde' to use the AMI maintained and secured by Fyde.<br>  Suported types are CentOS or AWS Linux based" | `string` | `"fyde"` | no |
 | asg\_desired\_capacity | The number of Amazon EC2 instances that should be running in the auto scaling group | `number` | `3` | no |
 | asg\_max\_size | The minimum size of the auto scaling group | `number` | `3` | no |
 | asg\_min\_size | The maximum size of the auto scaling group | `number` | `3` | no |

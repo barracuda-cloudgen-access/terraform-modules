@@ -24,6 +24,8 @@
 | asg\_notification\_arn\_topic | Optional ARN topic to get Auto Scaling Group events | `string` | `""` | no |
 | asg\_subnets | A list of subnet IDs to launch resources in.<br>  Use Private Subnets with NAT Gateway configured or Public Subnets | `list` | n/a | yes |
 | aws\_region | AWS Region | `string` | n/a | yes |
+| cloudWatch\_logs\_retention\_in\_days | Days to keep CloudWatch logs (Possible values are:<br>    1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0.<br>    0 = never delete.) | `number` | `7` | no |
+| cloudwatch\_logs\_enabled | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
 | fyde\_access\_proxy\_public\_port | Public port for this proxy (must match the value configured in the console for this proxy) | `number` | `443` | no |
 | fyde\_access\_proxy\_token | Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation) | `any` | n/a | yes |
 | launch\_cfg\_associate\_public\_ip\_address | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |

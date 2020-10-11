@@ -129,3 +129,23 @@ variable "launch_cfg_key_pair_name" {
   description = "The name of the key pair to use"
   type        = string
 }
+
+#
+# CloudWatch
+#
+
+variable "cloudwatch_logs_enabled" {
+  description = "Set to true to send '/var/log/message' logs to CloudWatch"
+  type        = bool
+  default     = true
+}
+
+variable "cloudWatch_logs_retention_in_days" {
+  description = <<EOF
+    Days to keep CloudWatch logs (Possible values are:
+    1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0.
+    0 = never delete.)
+  EOF
+  type        = number
+  default     = 7
+}

@@ -198,15 +198,19 @@ resource "aws_launch_configuration" "launch_config" {
   name_prefix                 = "fyde-access-proxy-"
   security_groups             = [aws_security_group.inbound.id, aws_security_group.resources.id]
   user_data                   = <<-EOT
-    #!/bin/bash -xe
-    INSTALL_PATH="/tmp/fyde-access-proxy"
-    INSTALL_URL="https://url.fyde.me/install-fyde-proxy-linux"
-    mkdir -p "$INSTALL_PATH"
-    curl -fsSLo "$INSTALL_PATH/install-fyde-proxy-linux.sh" "$INSTALL_URL"
-    chmod +x "$INSTALL_PATH/install-fyde-proxy-linux.sh"
-    sudo "$INSTALL_PATH/install-fyde-proxy-linux.sh" -p ${var.fyde_access_proxy_public_port} -u
-    rm -rf "$INSTALL_PATH"
-    EOT
+  #!/bin/bash
+  set -xeuo pipefail
+  echo "RateLimitBurst=10000" >> /etc/systemd/journald.conf
+  systemctl restart systemd-journald.service
+  %{~if var.cloudwatch_logs_enabled~}
+  curl -sL "https://url.fyde.me/config-ec2-cloudwatch-logs" | bash -s -- \
+    -l "/aws/ec2/FydeAccessProxy" \
+    -r "${var.aws_region}"
+  %{~endif~}
+  curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
+    -u \
+    -p "${var.fyde_access_proxy_public_port}"
+  EOT
 
   root_block_device {
     delete_on_termination = true
@@ -268,29 +272,70 @@ resource "aws_iam_role" "role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "role_policies" {
-  name = "fyde-access-proxy-role-policy"
+resource "aws_iam_role_policy" "fyde_secrets" {
+  name = "fyde-access-proxy-fyde-secrets"
   role = aws_iam_role.role.id
 
   policy = <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [{
-            "Sid": "CloudWatchMetricsWrite",
-            "Effect": "Allow",
-            "Action": "cloudwatch:PutMetricData",
-            "Resource": "*"
-        },
-        {
-            "Sid": "GetFydeSecrets",
-            "Effect": "Allow",
-            "Action": [
-                "secretsmanager:DescribeSecret",
-                "secretsmanager:GetSecretValue"
-            ],
-            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:fyde_*"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GetFydeSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:fyde_*"
+    }
+  ]
 }
 EOF
+}
+
+resource "aws_iam_role_policy" "cloudwatch_logs" {
+  count = var.cloudwatch_logs_enabled ? 1 : 0
+
+  name = "fyde-access-proxy-cloudwatch-logs"
+  role = aws_iam_role.role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "${aws_cloudwatch_log_group.fyde_access_proxy[0].arn}"
+    },
+    {
+      "Sid": "CloudWatchLogStreams",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+#
+# CloudWatch
+#
+
+resource "aws_cloudwatch_log_group" "fyde_access_proxy" {
+  count = var.cloudwatch_logs_enabled ? 1 : 0
+
+  name              = "/aws/ec2/FydeAccessProxy"
+  retention_in_days = var.cloudWatch_logs_retention_in_days
+
+  tags = local.common_tags_map
 }

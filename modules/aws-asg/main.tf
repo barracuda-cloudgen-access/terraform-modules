@@ -127,6 +127,34 @@ resource "aws_security_group" "resources" {
   )
 }
 
+resource "aws_security_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name        = "fyde-access-proxy-redis"
+  description = "Used to allow FydeAccessProxy access to redis"
+  vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
+
+  tags = merge(
+    {
+      "Name" = "fyde-access-proxy-redis"
+    },
+    local.common_tags_map
+  )
+}
+
+resource "aws_security_group_rule" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+
+  description       = "Allow ingress to redis port from group members"
+  type              = "ingress"
+  from_port         = 6379
+  to_port           = 6379
+  protocol          = "tcp"
+  self              = true
+  security_group_id = aws_security_group.redis[0].id
+}
+
 #
 # Auto Scaling Group
 #
@@ -197,8 +225,12 @@ resource "aws_launch_configuration" "launch_config" {
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
   name_prefix                 = "fyde-access-proxy-"
-  security_groups             = [aws_security_group.inbound.id, aws_security_group.resources.id]
-  user_data                   = <<-EOT
+  security_groups = compact([
+    aws_security_group.inbound.id,
+    aws_security_group.resources.id,
+    local.redis_enabled ? aws_security_group.redis[0].id : ""
+  ])
+  user_data = <<-EOT
   #!/bin/bash
   set -xeuo pipefail
   echo "RateLimitBurst=10000" >> /etc/systemd/journald.conf
@@ -210,6 +242,10 @@ resource "aws_launch_configuration" "launch_config" {
   %{~endif~}
   curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
     -u \
+  %{~if local.redis_enabled~}
+    -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
+    -s "${aws_elasticache_replication_group.redis[0].port}" \
+  %{~endif~}
     -p "${var.fyde_access_proxy_public_port}" \
     -l "${var.fyde_proxy_level}"
   EOT
@@ -329,6 +365,29 @@ resource "aws_iam_role_policy" "cloudwatch_logs" {
 EOF
 }
 
+resource "aws_iam_role_policy" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name = "fyde-access-proxy-redis"
+  role = aws_iam_role.role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DiscoverRedisCluster",
+      "Effect": "Allow",
+      "Action": [
+        "elasticache:DescribeCacheClusters"
+      ],
+      "Resource": "arn:aws:elasticache:${var.aws_region}:${data.aws_caller_identity.current.account_id}:replicationgroup:${aws_elasticache_replication_group.redis[0].id}"
+    }
+  ]
+}
+EOF
+}
+
 #
 # CloudWatch
 #
@@ -340,4 +399,47 @@ resource "aws_cloudwatch_log_group" "fyde_access_proxy" {
   retention_in_days = var.cloudWatch_logs_retention_in_days
 
   tags = local.common_tags_map
+}
+
+#
+# Redis
+#
+
+resource "aws_elasticache_replication_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  automatic_failover_enabled    = true
+  engine                        = "redis"
+  replication_group_id          = "FydeAccessProxy"
+  replication_group_description = "Redis for Fyde Access Proxy"
+  node_type                     = "cache.t2.micro"
+  number_cache_clusters         = 2
+  subnet_group_name             = aws_elasticache_subnet_group.redis[0].name
+  security_group_ids            = [aws_security_group.redis[0].id]
+  port                          = 6379
+  at_rest_encryption_enabled    = false #tfsec:ignore:AWS035
+  transit_encryption_enabled    = false #tfsec:ignore:AWS036
+
+  tags = local.common_tags_map
+}
+
+resource "aws_elasticache_subnet_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name        = "FydeAccessProxy"
+  description = "Redis Subnet Group for Fyde Access Proxy"
+  subnet_ids  = coalescelist(var.redis_subnets, var.asg_subnets)
+}
+
+# Workaround until https://github.com/terraform-providers/terraform-provider-aws/pull/13909 is merged
+# From https://github.com/terraform-providers/terraform-provider-aws/issues/13706#issuecomment-704331694
+resource "null_resource" "redis_multiaz_enable" {
+  count = local.redis_enabled ? 1 : 0
+
+  triggers = {
+    cache = aws_elasticache_replication_group.redis[0].id
+  }
+  provisioner "local-exec" {
+    command = "aws elasticache modify-replication-group --replication-group-id ${aws_elasticache_replication_group.redis[0].id} --multi-az-enabled --apply-immediately"
+  }
 }

@@ -160,3 +160,16 @@ variable "cloudWatch_logs_retention_in_days" {
   type        = number
   default     = 7
 }
+
+#
+# Redis
+#
+
+variable "redis_subnets" {
+  description = <<EOF
+  A list of subnet IDs to to use for the redis instances.
+  At least two subnets on different Availability Zones must be provided
+  EOF
+  type        = list
+  default     = []
+}

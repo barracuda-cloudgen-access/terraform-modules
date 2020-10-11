@@ -54,7 +54,7 @@ resource "aws_lb_listener" "nlb_listener" {
 }
 
 resource "aws_lb_target_group" "nlb_target_group" {
-  deregistration_delay = 300
+  deregistration_delay = 60
   name_prefix          = "fyde-"
   port                 = var.fyde_access_proxy_public_port
   protocol             = "TCP"
@@ -169,7 +169,7 @@ resource "aws_autoscaling_group" "asg" {
   max_size                  = var.asg_max_size
   metrics_granularity       = "1Minute"
   min_size                  = var.asg_min_size
-  name_prefix               = "fyde-access-proxy-"
+  name                      = aws_launch_configuration.launch_config.name
   target_group_arns         = [aws_lb_target_group.nlb_target_group.arn]
   termination_policies      = ["OldestInstance"]
   vpc_zone_identifier       = var.asg_subnets

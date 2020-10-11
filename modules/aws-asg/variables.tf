@@ -7,10 +7,26 @@ variable "fyde_access_proxy_public_port" {
   description = "Public port for this proxy (must match the value configured in the console for this proxy)"
   type        = number
   default     = 443
+
+  validation {
+    condition = (
+      var.fyde_access_proxy_public_port >= 1 &&
+      var.fyde_access_proxy_public_port <= 65535
+    )
+    error_message = "Public port needs to be >= 1 and <= 65535."
+  }
 }
 
 variable "fyde_access_proxy_token" {
   description = "Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation)"
+
+  validation {
+    condition = can(
+      regex("^https://.+[.]fyde[.]com/proxies.+proxy_auth_token.+$",
+      var.fyde_access_proxy_token)
+    )
+    error_message = "Provided Fyde Access Proxy Token doesn't match the expected format."
+  }
 }
 
 variable "module_version" {

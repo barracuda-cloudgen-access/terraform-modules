@@ -28,6 +28,7 @@
 | cloudwatch\_logs\_enabled | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
 | fyde\_access\_proxy\_public\_port | Public port for this proxy (must match the value configured in the console for this proxy) | `number` | `443` | no |
 | fyde\_access\_proxy\_token | Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation) | `any` | n/a | yes |
+| fyde\_proxy\_level | Set the Fyde Proxy orchestrator log level | `string` | `"info"` | no |
 | launch\_cfg\_associate\_public\_ip\_address | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
 | launch\_cfg\_instance\_type | The type of instance to use (t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
 | launch\_cfg\_key\_pair\_name | The name of the key pair to use | `string` | n/a | yes |

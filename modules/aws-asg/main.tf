@@ -209,7 +209,8 @@ resource "aws_launch_configuration" "launch_config" {
   %{~endif~}
   curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
     -u \
-    -p "${var.fyde_access_proxy_public_port}"
+    -p "${var.fyde_access_proxy_public_port}" \
+    -l "${var.fyde_proxy_level}"
   EOT
 
   root_block_device {

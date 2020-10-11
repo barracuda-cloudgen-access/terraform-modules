@@ -29,6 +29,17 @@ variable "fyde_access_proxy_token" {
   }
 }
 
+variable "fyde_proxy_level" {
+  description = "Set the Fyde Proxy orchestrator log level"
+  type        = string
+  default     = "info"
+
+  validation {
+    condition     = can(regex("^(info|warning|error|critical|debug)$", var.fyde_proxy_level))
+    error_message = "AllowedValues: info, warning, error, critical or debug."
+  }
+}
+
 variable "module_version" {
   description = "Terraform module version"
   type        = string

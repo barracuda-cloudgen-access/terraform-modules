@@ -43,7 +43,7 @@ variable "fyde_proxy_level" {
 variable "module_version" {
   description = "Terraform module version"
   type        = string
-  default     = "v1.0.0"
+  default     = "v1.1.0"
 }
 
 #

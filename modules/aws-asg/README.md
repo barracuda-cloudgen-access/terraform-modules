@@ -32,7 +32,7 @@
 | launch\_cfg\_associate\_public\_ip\_address | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
 | launch\_cfg\_instance\_type | The type of instance to use (t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
 | launch\_cfg\_key\_pair\_name | The name of the key pair to use | `string` | n/a | yes |
-| module\_version | Terraform module version | `string` | `"v1.0.0"` | no |
+| module\_version | Terraform module version | `string` | `"v1.1.0"` | no |
 | nlb\_enable\_cross\_zone\_load\_balancing | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | nlb\_subnets | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |
 | redis\_subnets | A list of subnet IDs to to use for the redis instances.<br>  At least two subnets on different Availability Zones must be provided | `list` | `[]` | no |

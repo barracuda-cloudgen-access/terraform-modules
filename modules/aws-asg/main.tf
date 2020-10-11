@@ -3,8 +3,9 @@
 #
 
 resource "aws_secretsmanager_secret" "token" {
-  name        = "fyde_enrollment_token"
-  description = "Fyde Access Proxy Enrollment Token"
+  name                    = "fyde_enrollment_token"
+  description             = "Fyde Access Proxy Enrollment Token"
+  recovery_window_in_days = 0
 
   tags = local.common_tags_map
 }

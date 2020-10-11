@@ -81,7 +81,10 @@ variable "asg_max_size" {
 }
 
 variable "asg_subnets" {
-  description = "A list of subnet IDs to launch resources in. Use Private Subnets with NAT Gateway configured or Public Subnets"
+  description = <<EOF
+  A list of subnet IDs to launch resources in.
+  Use Private Subnets with NAT Gateway configured or Public Subnets
+  EOF
   type        = list
 }
 
@@ -108,6 +111,6 @@ variable "launch_cfg_instance_type" {
 }
 
 variable "launch_cfg_key_pair_name" {
-  type        = string
   description = "The name of the key pair to use"
+  type        = string
 }

@@ -222,7 +222,8 @@ resource "aws_launch_configuration" "launch_config" {
 #
 
 resource "aws_autoscaling_notification" "notification" {
-  count = length(var.asg_notification_arn_topic) > 0 ? 1 : 0
+  count = var.asg_notification_arn_topic == "" ? 0 : 1
+
   group_names = [
     aws_autoscaling_group.asg.name
   ]

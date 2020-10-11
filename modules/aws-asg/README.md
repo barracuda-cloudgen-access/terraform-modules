@@ -21,7 +21,7 @@
 | asg\_max\_size | The minimum size of the auto scaling group | `number` | `3` | no |
 | asg\_min\_size | The maximum size of the auto scaling group | `number` | `3` | no |
 | asg\_notification\_arn\_topic | Optional ARN topic to get Auto Scaling Group events | `string` | `""` | no |
-| asg\_subnets | A list of subnet IDs to launch resources in. Use Private Subnets with NAT Gateway configured or Public Subnets | `list` | n/a | yes |
+| asg\_subnets | A list of subnet IDs to launch resources in.<br>  Use Private Subnets with NAT Gateway configured or Public Subnets | `list` | n/a | yes |
 | aws\_region | AWS Region | `string` | n/a | yes |
 | fyde\_access\_proxy\_public\_port | Public port for this proxy (must match the value configured in the console for this proxy) | `number` | `443` | no |
 | fyde\_access\_proxy\_token | Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation) | `any` | n/a | yes |

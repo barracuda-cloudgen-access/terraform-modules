@@ -14,7 +14,7 @@ Usage example:
 
 ```yaml
 module "fyde-access-proxy" {
-  source = "git::git@github.com:fyde/terraform-modules.git//modules/aws-asg?ref=v1.0.0"
+  source = "git::git@github.com:fyde/terraform-modules.git//modules/aws-asg?ref=v1.1.0"
 
   # Fyde Access Proxy
   fyde_access_proxy_public_port = 443

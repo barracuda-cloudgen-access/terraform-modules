@@ -3,8 +3,9 @@
 #
 
 resource "aws_secretsmanager_secret" "token" {
-  name        = "fyde_enrollment_token"
-  description = "Fyde Access Proxy Enrollment Token"
+  name                    = "fyde_enrollment_token"
+  description             = "Fyde Access Proxy Enrollment Token"
+  recovery_window_in_days = 0
 
   tags = local.common_tags_map
 }
@@ -53,7 +54,7 @@ resource "aws_lb_listener" "nlb_listener" {
 }
 
 resource "aws_lb_target_group" "nlb_target_group" {
-  deregistration_delay = 300
+  deregistration_delay = 60
   name_prefix          = "fyde-"
   port                 = var.fyde_access_proxy_public_port
   protocol             = "TCP"
@@ -126,6 +127,34 @@ resource "aws_security_group" "resources" {
   )
 }
 
+resource "aws_security_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name        = "fyde-access-proxy-redis"
+  description = "Used to allow FydeAccessProxy access to redis"
+  vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
+
+  tags = merge(
+    {
+      "Name" = "fyde-access-proxy-redis"
+    },
+    local.common_tags_map
+  )
+}
+
+resource "aws_security_group_rule" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+
+  description       = "Allow ingress to redis port from group members"
+  type              = "ingress"
+  from_port         = 6379
+  to_port           = 6379
+  protocol          = "tcp"
+  self              = true
+  security_group_id = aws_security_group.redis[0].id
+}
+
 #
 # Auto Scaling Group
 #
@@ -140,7 +169,7 @@ resource "aws_autoscaling_group" "asg" {
   max_size                  = var.asg_max_size
   metrics_granularity       = "1Minute"
   min_size                  = var.asg_min_size
-  name_prefix               = "fyde-access-proxy-"
+  name                      = aws_launch_configuration.launch_config.name
   target_group_arns         = [aws_lb_target_group.nlb_target_group.arn]
   termination_policies      = ["OldestInstance"]
   vpc_zone_identifier       = var.asg_subnets
@@ -168,6 +197,8 @@ resource "aws_autoscaling_group" "asg" {
 #
 
 data "aws_ami" "fyde_access_proxy" {
+  count = var.asg_ami == "fyde" ? 1 : 0
+
   most_recent = true
 
   filter {
@@ -188,24 +219,36 @@ data "aws_ami" "fyde_access_proxy" {
 #
 
 resource "aws_launch_configuration" "launch_config" {
-
   associate_public_ip_address = var.launch_cfg_associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.profile.id
-  image_id                    = data.aws_ami.fyde_access_proxy.id
+  image_id                    = coalesce(data.aws_ami.fyde_access_proxy[0].id, var.asg_ami)
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
   name_prefix                 = "fyde-access-proxy-"
-  security_groups             = [aws_security_group.inbound.id, aws_security_group.resources.id]
-  user_data                   = <<-EOT
-    #!/bin/bash -xe
-    INSTALL_PATH="/tmp/fyde-access-proxy"
-    INSTALL_URL="https://url.fyde.me/install-fyde-proxy-linux"
-    mkdir -p "$INSTALL_PATH"
-    curl -fsSLo "$INSTALL_PATH/install-fyde-proxy-linux.sh" "$INSTALL_URL"
-    chmod +x "$INSTALL_PATH/install-fyde-proxy-linux.sh"
-    sudo "$INSTALL_PATH/install-fyde-proxy-linux.sh" -p ${var.fyde_access_proxy_public_port} -u
-    rm -rf "$INSTALL_PATH"
-    EOT
+  security_groups = compact([
+    aws_security_group.inbound.id,
+    aws_security_group.resources.id,
+    local.redis_enabled ? aws_security_group.redis[0].id : ""
+  ])
+  user_data = <<-EOT
+  #!/bin/bash
+  set -xeuo pipefail
+  echo "RateLimitBurst=10000" >> /etc/systemd/journald.conf
+  systemctl restart systemd-journald.service
+  %{~if var.cloudwatch_logs_enabled~}
+  curl -sL "https://url.fyde.me/config-ec2-cloudwatch-logs" | bash -s -- \
+    -l "/aws/ec2/FydeAccessProxy" \
+    -r "${var.aws_region}"
+  %{~endif~}
+  curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
+    -u \
+  %{~if local.redis_enabled~}
+    -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
+    -s "${aws_elasticache_replication_group.redis[0].port}" \
+  %{~endif~}
+    -p "${var.fyde_access_proxy_public_port}" \
+    -l "${var.fyde_proxy_level}"
+  EOT
 
   root_block_device {
     delete_on_termination = true
@@ -222,7 +265,8 @@ resource "aws_launch_configuration" "launch_config" {
 #
 
 resource "aws_autoscaling_notification" "notification" {
-  count = length(var.asg_notification_arn_topic) > 0 ? 1 : 0
+  count = var.asg_notification_arn_topic == "" ? 0 : 1
+
   group_names = [
     aws_autoscaling_group.asg.name
   ]
@@ -266,29 +310,136 @@ resource "aws_iam_role" "role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "role_policies" {
-  name = "fyde-access-proxy-role-policy"
+resource "aws_iam_role_policy" "fyde_secrets" {
+  name = "fyde-access-proxy-fyde-secrets"
   role = aws_iam_role.role.id
 
   policy = <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [{
-            "Sid": "CloudWatchMetricsWrite",
-            "Effect": "Allow",
-            "Action": "cloudwatch:PutMetricData",
-            "Resource": "*"
-        },
-        {
-            "Sid": "GetFydeSecrets",
-            "Effect": "Allow",
-            "Action": [
-                "secretsmanager:DescribeSecret",
-                "secretsmanager:GetSecretValue"
-            ],
-            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:fyde_*"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GetFydeSecrets",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:fyde_*"
+    }
+  ]
 }
 EOF
+}
+
+resource "aws_iam_role_policy" "cloudwatch_logs" {
+  count = var.cloudwatch_logs_enabled ? 1 : 0
+
+  name = "fyde-access-proxy-cloudwatch-logs"
+  role = aws_iam_role.role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "${aws_cloudwatch_log_group.fyde_access_proxy[0].arn}"
+    },
+    {
+      "Sid": "CloudWatchLogStreams",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name = "fyde-access-proxy-redis"
+  role = aws_iam_role.role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DiscoverRedisCluster",
+      "Effect": "Allow",
+      "Action": [
+        "elasticache:DescribeCacheClusters"
+      ],
+      "Resource": "arn:aws:elasticache:${var.aws_region}:${data.aws_caller_identity.current.account_id}:replicationgroup:${aws_elasticache_replication_group.redis[0].id}"
+    }
+  ]
+}
+EOF
+}
+
+#
+# CloudWatch
+#
+
+resource "aws_cloudwatch_log_group" "fyde_access_proxy" {
+  count = var.cloudwatch_logs_enabled ? 1 : 0
+
+  name              = "/aws/ec2/FydeAccessProxy"
+  retention_in_days = var.cloudWatch_logs_retention_in_days
+
+  tags = local.common_tags_map
+}
+
+#
+# Redis
+#
+
+resource "aws_elasticache_replication_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  automatic_failover_enabled    = true
+  engine                        = "redis"
+  replication_group_id          = "FydeAccessProxy"
+  replication_group_description = "Redis for Fyde Access Proxy"
+  node_type                     = "cache.t2.micro"
+  number_cache_clusters         = 2
+  subnet_group_name             = aws_elasticache_subnet_group.redis[0].name
+  security_group_ids            = [aws_security_group.redis[0].id]
+  port                          = 6379
+  at_rest_encryption_enabled    = false #tfsec:ignore:AWS035
+  transit_encryption_enabled    = false #tfsec:ignore:AWS036
+
+  tags = local.common_tags_map
+}
+
+resource "aws_elasticache_subnet_group" "redis" {
+  count = local.redis_enabled ? 1 : 0
+
+  name        = "FydeAccessProxy"
+  description = "Redis Subnet Group for Fyde Access Proxy"
+  subnet_ids  = coalescelist(var.redis_subnets, var.asg_subnets)
+}
+
+# Workaround until https://github.com/terraform-providers/terraform-provider-aws/pull/13909 is merged
+# From https://github.com/terraform-providers/terraform-provider-aws/issues/13706#issuecomment-704331694
+resource "null_resource" "redis_multiaz_enable" {
+  count = local.redis_enabled ? 1 : 0
+
+  triggers = {
+    cache = aws_elasticache_replication_group.redis[0].id
+  }
+  provisioner "local-exec" {
+    command = "aws elasticache modify-replication-group --replication-group-id ${aws_elasticache_replication_group.redis[0].id} --multi-az-enabled --apply-immediately"
+  }
 }

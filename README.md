@@ -53,3 +53,4 @@ Check all the available variables [here](modules/aws-asg/README.md)
 - This repository has [pre-commit](https://github.com/antonbabenko/pre-commit-terraform) configured
   - Test all the pre-commit hooks with `pre-commit run -a`
 - Test branch with `git::git@github.com:fyde/terraform-modules.git//modules/aws-asg?ref=<branch-name>`
+- Test github actions with [nektos/act](https://github.com/nektos/act)

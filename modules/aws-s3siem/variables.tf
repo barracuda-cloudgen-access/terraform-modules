@@ -35,5 +35,17 @@ variable "access_s3_policy_name" {
 variable "lambda_name" {
   description = "Name of the public lambda endpoint to receive the event logs."
   type        = string
-  default     = "s3siem"
+  default     = "s3siem_lambda"
+}
+
+variable "api_gateway_name" {
+    description = "Name of the API gateway that publishes the lambda"
+    type = string
+    default = "s3siem_api"
+}
+
+variable "api_gateway_resource_path" {
+    description = "Path for aws api gateway resource"
+    type = string
+    default = "create"
 }

@@ -11,5 +11,5 @@ output "api_gateway_url" {
   # https://{restapi_id}.execute-api.{region}.amazonaws.com/{stage_name}/
   # where {restapi_id} is the API identifier, {region} is the Region, and {stage_name} is the stage name of the API deployment. 
   # using default as stage
-  value = "https://${data.aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/"
+  value = "https://${aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/${var.aws_api_gateway_stage}/${var.api_gateway_resource_path}"
   }

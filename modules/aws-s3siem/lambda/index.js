@@ -19,18 +19,28 @@ function buildKey(event) {
 
 exports.handler = async (event, context, callback) => {
 
-    const dstKey = buildKey(event);
+    console.log("Event:", event);
+
+    let baseEvent = event;
+    if (event['body']) {
+        baseEvent = JSON.parse(event['body']);
+    } 
+
+    console.log("Event:", baseEvent);
+    
+    const dstKey = buildKey(baseEvent);
     if (dstKey == undefined) {
+        console.log("BAD EVENT FORMAT!!!!");
         return {
             statusCode: 500,
             body: "Bad event format",
         };
     }
 
-    const body = JSON.stringify(event);
+    const body = JSON.stringify(baseEvent);
 
     // debug
-    // console.log("Will write :\n", dstKey, "=>", body);
+    console.log("Will write :\n", dstKey, "=>", body);
 
     // Upload the event as a file to the destination bucket
     try {

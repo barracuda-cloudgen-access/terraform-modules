@@ -47,5 +47,11 @@ variable "api_gateway_name" {
 variable "api_gateway_resource_path" {
     description = "Path for aws api gateway resource"
     type = string
-    default = "create"
+    default = "siem"
+}
+
+variable "aws_api_gateway_stage" {
+    description = "Stage for the api gateway deployment"
+    type = string
+    default = "prod"
 }

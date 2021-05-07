@@ -3,15 +3,22 @@ provider "aws" {
   region  = var.aws_region
 }
 
+resource "random_id" "random" {
+  byte_length = 8
+}
+
 # create s3 bucket
 # tfsec:ignore:AWS002 tfsec:ignore:AWS017
 resource "aws_s3_bucket" "bucket" {
-  bucket = var.s3_bucket_name
+  bucket = "${var.s3_bucket_name}.${random_id.random.hex}"
   acl    = "private"
+
+  # TODO remove before publishing
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_public_access_block" "public_access_block" {
-  bucket                  = aws_s3_bucket.bucket.bucket
+  bucket                  = aws_s3_bucket.bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -20,7 +27,6 @@ resource "aws_s3_bucket_public_access_block" "public_access_block" {
 
 # create policy for bucket
 resource "aws_s3_bucket_policy" "bucket" {
-
   bucket = aws_s3_bucket.bucket.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -107,6 +113,18 @@ resource "aws_lambda_function" "lambda" {
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   runtime = "nodejs14.x"
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambdatos3policy,
+    aws_cloudwatch_log_group.lambda_logs,
+  ]
+}
+
+# create logs for lambda
+
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/${var.lambda_name}"
+  retention_in_days = 7
 }
 
 
@@ -125,7 +143,7 @@ resource "aws_api_gateway_resource" "resource" {
 resource "aws_api_gateway_method" "method" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.resource.id
-  http_method   = "GET"
+  http_method   = "POST"
   authorization = "NONE"
 }
 
@@ -144,6 +162,23 @@ resource "aws_lambda_permission" "apigw_lambda" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn = "arn:aws:execute-api:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}${aws_api_gateway_resource.resource.path}"
+  source_arn    = "arn:aws:execute-api:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}${aws_api_gateway_resource.resource.path}"
 }
 
+# create deployment for API
+resource "aws_api_gateway_deployment" "deployment" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  depends_on = [
+    aws_api_gateway_method.method,
+    aws_api_gateway_integration.integration
+  ]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "stage" {
+  deployment_id = aws_api_gateway_deployment.deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  stage_name    = var.aws_api_gateway_stage
+}

@@ -3,14 +3,10 @@ provider "aws" {
   region  = var.aws_region
 }
 
-resource "random_id" "random" {
-  byte_length = 8
-}
-
 # create s3 bucket
-# tfsec:ignore:AWS002 tfsec:ignore:AWS017
+# tfsec:ignore:AWS002 tfsec:ignore:AWS017 tfsec:ignore:AWS077
 resource "aws_s3_bucket" "bucket" {
-  bucket = "${var.s3_bucket_name}.${random_id.random.hex}"
+  bucket = var.s3_bucket_name
   acl    = "private"
 
   # TODO remove before publishing
@@ -22,7 +18,7 @@ resource "aws_s3_bucket_public_access_block" "public_access_block" {
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
-  restrict_public_buckets = false
+  restrict_public_buckets = true
 }
 
 # create policy for bucket
@@ -177,6 +173,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   }
 }
 
+# tfsec:ignore:AWS061
 resource "aws_api_gateway_stage" "stage" {
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = aws_api_gateway_rest_api.api.id

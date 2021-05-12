@@ -39,19 +39,19 @@ variable "lambda_name" {
 }
 
 variable "api_gateway_name" {
-    description = "Name of the API gateway that publishes the lambda"
-    type = string
-    default = "s3siem_api"
+  description = "Name of the API gateway that publishes the lambda"
+  type        = string
+  default     = "s3siem_api"
 }
 
 variable "api_gateway_resource_path" {
-    description = "Path for aws api gateway resource"
-    type = string
-    default = "siem"
+  description = "Path for aws api gateway resource"
+  type        = string
+  default     = "siem"
 }
 
 variable "aws_api_gateway_stage" {
-    description = "Stage for the api gateway deployment"
-    type = string
-    default = "prod"
+  description = "Stage for the api gateway deployment"
+  type        = string
+  default     = "prod"
 }

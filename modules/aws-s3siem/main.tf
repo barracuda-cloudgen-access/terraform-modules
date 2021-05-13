@@ -179,3 +179,24 @@ resource "aws_api_gateway_stage" "stage" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   stage_name    = var.aws_api_gateway_stage
 }
+
+locals {
+  CA_URL = {
+    US = "https://enterprise.fyde.com/.well-known/root-ca.pem",
+    EU = "https://enterprise.eu.fyde.com/.well-known/root-ca.pem",
+  }
+}
+
+data "http" "root_ca" {
+  url = lookup(local.CA_URL, var.cluster_location)
+
+  # unsupported, will issue warning but it's ok
+  # request_headers = {
+  #   Content-Type = "application/x-x509-ca-cert"
+  # }
+}
+
+resource "local_file" "root_ca" {
+  content  = data.http.root_ca.body
+  filename = "files/root_ca.pem"
+}

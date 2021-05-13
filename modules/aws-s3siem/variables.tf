@@ -55,3 +55,9 @@ variable "aws_api_gateway_stage" {
   type        = string
   default     = "prod"
 }
+
+variable "cluster_location" {
+  description = "Cluster location (US, EU)"
+  type        = string
+  default     = "US"
+}

@@ -13,3 +13,13 @@ output "api_gateway_url" {
   # using default as stage
   value = "https://${aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/${var.aws_api_gateway_stage}/${var.api_gateway_resource_path}"
 }
+
+output "e2e_test" {
+  value = <<COMMAND
+      curl -X POST
+           -H "Accept: application/json"
+           -H "Content-type: application/json"
+           --data-binary @./sample_event.json
+           https://${aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/${var.aws_api_gateway_stage}/${var.api_gateway_resource_path}"
+    COMMAND
+}

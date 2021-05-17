@@ -198,5 +198,76 @@ data "http" "root_ca" {
 
 resource "local_file" "root_ca" {
   content  = data.http.root_ca.body
-  filename = "files/root_ca.pem"
+  filename = "${path.module}/files/root_ca.pem"
 }
+
+## Set up mTLS verification with root CA:
+# aws apigateway create-domain-name --region us-east-2 \
+#     --domain-name api.example.com \
+#     --regional-certificate-arn arn:aws:acm:us-east-2:123456789012:certificate/123456789012-1234-1234-1234-12345678 \
+#     --endpoint-configuration types=REGIONAL \
+#     --security-policy TLS_1_2 \
+#     --mutual-tls-authentication truststoreUri=s3://bucket-name/key-name
+
+# upload cert to S3
+# see https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-mutual-tls.html
+resource "aws_s3_bucket_object" "root_ca" {
+  bucket = aws_s3_bucket.bucket.id
+  key    = "certs/root_ca.pem"
+  acl    = "private" # or can be "public-read"
+
+  source = local_file.root_ca.filename
+  etag   = sha256(local_file.root_ca.content)
+}
+
+
+# # Example DNS record creation using Route53.
+# # Route53 is not specifically required; any DNS host can be used.
+# resource "aws_route53_zone" "primary" {
+#   name = var.ingress_domain_zone
+# }
+
+# resource "aws_route53_record" "record" {
+#   name    = var.ingress_domain_name
+#   type    = "A"
+#   zone_id = aws_route53_zone.primary.id
+
+#   alias {
+#     evaluate_target_health = true
+#     name                   = aws_api_gateway_domain_name.domain.regional_domain_name
+#     zone_id                = aws_api_gateway_domain_name.domain.regional_zone_id
+#   }
+# }
+
+# resource "aws_acm_certificate" "cert" {
+#   domain_name       = aws_route53_record.record.name
+#   validation_method = "DNS"
+# }
+
+# # create domain name
+# resource "aws_api_gateway_domain_name" "domain" {
+#   domain_name               = aws_acm_certificate.cert.domain_name
+#   regional_certificate_name = aws_acm_certificate.cert.arn
+#   security_policy           = "TLS_1_2"
+
+#   mutual_tls_authentication {
+#     truststore_uri = "s3://${aws_s3_bucket.bucket.id}/${aws_s3_bucket_object.root_ca.key}"
+#   }
+
+#   endpoint_configuration {
+#     types = ["REGIONAL"]
+#   }
+# }
+
+## TODO
+## 1. Make sure all files are being sent correctly to lambda
+## 2. make sure that lambda works with dependencies (nodejs14)
+## 5. add alternative flow for terraform test not to fail ??
+## 6. test end to end flow
+
+
+
+# 2 workers
+# 1 ingress - only validates json schema and sends to queue
+# 2 ingress - validate certificate (do we need to sign the payload or can we use mTLS?)
+# >>>> mTLS requires private key and certificate rotation management!!!! <<<<<

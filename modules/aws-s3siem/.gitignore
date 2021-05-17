@@ -1,0 +1,4 @@
+# created by terraform
+./files/lambda.zip
+./files/index.js
+./files/root_ca.pem

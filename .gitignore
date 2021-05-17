@@ -3,4 +3,3 @@ terraform.tfstate
 *.tfstate*
 terraform.tfvars
 .terraform.*
-modules/aws-s3siem/files

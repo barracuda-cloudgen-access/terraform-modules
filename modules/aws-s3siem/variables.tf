@@ -61,3 +61,16 @@ variable "cluster_location" {
   type        = string
   default     = "US"
 }
+
+# TODO change this
+variable "ingress_domain_zone" {
+  description = "Ingress domain zone"
+  type        = string
+  default     = "mgmt-console.dev.tech.fyde.com"
+}
+
+variable "ingress_domain_name" {
+  description = "Ingress domain name"
+  type        = string
+  default     = "s3siem.mgmt-console.dev.tech.fyde.com"
+}

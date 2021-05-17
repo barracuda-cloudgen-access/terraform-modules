@@ -4,18 +4,27 @@
 
 data "template_file" "lambda" {
   template = file("${path.module}/lambda/index.js")
+
   vars = {
     bucket = aws_s3_bucket.bucket.bucket
   }
 }
 
+resource "local_file" "lambda" {
+  content  = data.template_file.lambda.rendered
+  filename = "${path.module}/files/index.js"
+}
+
 data "archive_file" "lambda_zip" {
   type = "zip"
-  source {
-    content  = data.template_file.lambda.rendered
-    filename = "index.js"
-  }
+
+  source_dir  = "${path.module}/files/"
   output_path = "${path.module}/files/lambda.zip"
+
+  depends_on = [
+    data.template_file.lambda,
+    local_file.lambda
+  ]
 }
 
 data "aws_lambda_invocation" "test_example_event" {

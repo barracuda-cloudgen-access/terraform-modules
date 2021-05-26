@@ -111,7 +111,7 @@ variable "asg_subnets" {
   A list of subnet IDs to launch resources in.
   Use Private Subnets with NAT Gateway configured or Public Subnets
   EOF
-  type        = list
+  type        = list(any)
 }
 
 variable "asg_notification_arn_topic" {
@@ -170,6 +170,6 @@ variable "redis_subnets" {
   A list of subnet IDs to to use for the redis instances.
   At least two subnets on different Availability Zones must be provided
   EOF
-  type        = list
+  type        = list(any)
   default     = []
 }

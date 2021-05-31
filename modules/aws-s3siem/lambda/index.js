@@ -44,6 +44,7 @@ function buildKey(deviceID_) {
       +-+ Subject: CN = "Barracuda CloudGen Access Device Certificate (<UUID>, <UUID>)" | Issuer: CN = fyde://<TENANT_UUID>/
  */
 function validateEvent(deviceID_, tenantID_, certInfo) {
+    // TODO print to see the chain of PEMs 
     if (certInfo['issuerDN'] == 'fyde://'+tenantID_+'/') {
         const ed25519Cert = Certificate.fromPEM(certInfo['clientCertPem']);
         const extn = ed25519Cert.extensions.find(extn => extn.name == 'subjectAltName');

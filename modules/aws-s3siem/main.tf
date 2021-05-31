@@ -201,6 +201,8 @@ resource "local_file" "root_ca" {
   filename = "${path.module}/files/root_ca.pem"
 }
 
+# https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-mutual-tls.html
+
 ## Set up mTLS verification with root CA:
 # aws apigateway create-domain-name --region us-east-2 \
 #     --domain-name api.example.com \
@@ -260,14 +262,10 @@ resource "aws_s3_bucket_object" "root_ca" {
 # }
 
 ## TODO
-## 1. Make sure all files are being sent correctly to lambda
-## 2. make sure that lambda works with dependencies (nodejs14)
-## 5. add alternative flow for terraform test not to fail ??
-## 6. test end to end flow
+## this approach does not work because mTLS requires private key and certificate rotation management. Instead:
 
-
-
-# 2 workers
-# 1 ingress - only validates json schema and sends to queue
-# 2 ingress - validate certificate (do we need to sign the payload or can we use mTLS?)
-# >>>> mTLS requires private key and certificate rotation management!!!! <<<<<
+## 1. do not setup mTLS
+## 2. expose intermediate + tenant certificate in fixed path you can search for to validate chain
+## 3. get certificate chain from metadata (check whether we can do this without mTLS or if we need to sign the payload)
+## 4. switch to python to validate the chain
+## 5. to avoid downloading intermediate + tenant certificate on each lambda call, set up a scheduled lambda with a cache, that runs once a day and saves to s3 (trigger is a cron). The lambda reads from s3. 

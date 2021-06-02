@@ -19,6 +19,8 @@ variable "fyde_access_proxy_public_port" {
 
 variable "fyde_access_proxy_token" {
   description = "Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation)"
+  type        = string
+  sensitive   = true
 
   validation {
     condition = can(

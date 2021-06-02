@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+permissions: read-all
+
 defaults:
   run:
     shell: sh
@@ -39,11 +41,14 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    container: wata727/tflint
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Lint
+      - name: Setup
+        uses: terraform-linters/setup-tflint@v1.1.0
+      - name: Show version
+        run: tflint --version
+      - name: Run
         run: >
           find ./modules/ -maxdepth 1 -mindepth 1
           -exec tflint {} --loglevel=info \;
@@ -51,11 +56,14 @@ jobs:
   security:
     name: Security
     runs-on: ubuntu-latest
-    container:
-      image: liamg/tfsec
-      options: --user root
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Security
-        run: /usr/bin/tfsec ./modules --verbose
+      - name: tfsec
+        uses: tfsec/tfsec-sarif-action@master
+        with:
+          sarif_file: tfsec.sarif
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: tfsec.sarif

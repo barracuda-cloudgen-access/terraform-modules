@@ -196,14 +196,15 @@ resource "aws_autoscaling_group" "asg" {
 # AMI
 #
 
-data "aws_ami" "fyde_access_proxy" {
-  count = var.asg_ami == "fyde" ? 1 : 0
+data "aws_ami" "ami" {
+  count = var.asg_ami == "amazonlinux2" ? 1 : 0
 
   most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["amazonlinux-2-base_*"]
+    values = ["amzn2-ami-hvm*"]
   }
 
   filter {
@@ -211,7 +212,16 @@ data "aws_ami" "fyde_access_proxy" {
     values = ["hvm"]
   }
 
-  owners = ["766535289950"]
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
 }
 
 #
@@ -221,7 +231,7 @@ data "aws_ami" "fyde_access_proxy" {
 resource "aws_launch_configuration" "launch_config" {
   associate_public_ip_address = var.launch_cfg_associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.profile.id
-  image_id                    = coalesce(data.aws_ami.fyde_access_proxy[0].id, var.asg_ami)
+  image_id                    = coalesce(data.aws_ami.ami[0].id, var.asg_ami)
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
   name_prefix                 = "fyde-access-proxy-"
@@ -232,22 +242,24 @@ resource "aws_launch_configuration" "launch_config" {
   ])
   user_data = <<-EOT
   #!/bin/bash
-  set -xeuo pipefail
-  echo "RateLimitBurst=10000" >> /etc/systemd/journald.conf
-  systemctl restart systemd-journald.service
   %{~if var.cloudwatch_logs_enabled~}
+  # Install CloudWatch Agent
   curl -sL "https://url.fyde.me/config-ec2-cloudwatch-logs" | bash -s -- \
     -l "/aws/ec2/FydeAccessProxy" \
     -r "${var.aws_region}"
   %{~endif~}
-  curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
+  # Install CloudGen Access Proxy
+  curl -sL "https://url.fyde.me/proxy-linux" | bash -s -- \
     -u \
   %{~if local.redis_enabled~}
     -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
     -s "${aws_elasticache_replication_group.redis[0].port}" \
   %{~endif~}
-    -p "${var.fyde_access_proxy_public_port}" \
-    -l "${var.fyde_proxy_level}"
+    -p "${var.cloudgen_access_proxy_public_port}" \
+    -l "${var.cloudgen_access_proxy_level}"
+  # Harden instance and reboot
+  curl -sL "https://url.fyde.me/harden-linux" | bash -s --
+  shutdown -r now
   EOT
 
   root_block_device {

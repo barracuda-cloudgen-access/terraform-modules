@@ -174,3 +174,13 @@ variable "redis_subnets" {
   type        = list(any)
   default     = []
 }
+
+#
+# Tags
+#
+
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
+}

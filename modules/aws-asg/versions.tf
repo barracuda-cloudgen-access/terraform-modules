@@ -3,10 +3,8 @@ terraform {
 
   required_providers {
     aws      = "~> 3.26"
+    null     = "~> 3"
+    random   = "~> 3"
     template = "~> 2"
   }
-}
-
-provider "aws" {
-  region = var.aws_region
 }

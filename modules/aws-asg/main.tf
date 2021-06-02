@@ -419,6 +419,7 @@ resource "aws_elasticache_replication_group" "redis" {
   port                          = 6379
   at_rest_encryption_enabled    = false #tfsec:ignore:AWS035
   transit_encryption_enabled    = false #tfsec:ignore:AWS036
+  multi_az_enabled              = true
 
   tags = local.common_tags_map
 }
@@ -429,17 +430,4 @@ resource "aws_elasticache_subnet_group" "redis" {
   name        = "FydeAccessProxy"
   description = "Redis Subnet Group for Fyde Access Proxy"
   subnet_ids  = coalescelist(var.redis_subnets, var.asg_subnets)
-}
-
-# Workaround until https://github.com/terraform-providers/terraform-provider-aws/pull/13909 is merged
-# From https://github.com/terraform-providers/terraform-provider-aws/issues/13706#issuecomment-704331694
-resource "null_resource" "redis_multiaz_enable" {
-  count = local.redis_enabled ? 1 : 0
-
-  triggers = {
-    cache = aws_elasticache_replication_group.redis[0].id
-  }
-  provisioner "local-exec" {
-    command = "aws elasticache modify-replication-group --replication-group-id ${aws_elasticache_replication_group.redis[0].id} --multi-az-enabled --apply-immediately"
-  }
 }

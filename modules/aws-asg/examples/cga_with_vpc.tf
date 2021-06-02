@@ -23,7 +23,7 @@ provider "aws" {
 #
 
 module "cloudgen-access-proxy" {
-  source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=v1.1.0"
+  source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=v1.2.0"
 
   # More examples
   # run 'rm -rf .terraform/' after changing source

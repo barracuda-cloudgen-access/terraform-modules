@@ -1,18 +1,32 @@
 #
+# Prefix
+#
+
+resource "random_string" "prefix" {
+  length  = 6
+  lower   = true
+  upper   = true
+  number  = true
+  special = false
+}
+
+#
 # Enrollment token
 #
 
 resource "aws_secretsmanager_secret" "token" {
-  name                    = "fyde_enrollment_token"
-  description             = "Fyde Access Proxy Enrollment Token"
+  name                    = "cga_proxy_${random_string.prefix.result}_enrollment_token"
+  description             = "CloudGen Access Proxy Enrollment Token"
   recovery_window_in_days = 0
 
-  tags = local.common_tags_map
+  tags = {
+    Name = "cga_proxy_${random_string.prefix.result}_enrollment_token"
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "token" {
   secret_id     = aws_secretsmanager_secret.token.id
-  secret_string = var.fyde_access_proxy_token
+  secret_string = var.cloudgen_access_proxy_token
 }
 
 #
@@ -23,24 +37,17 @@ resource "aws_lb" "nlb" {
   enable_cross_zone_load_balancing = var.nlb_enable_cross_zone_load_balancing
   internal                         = false #tfsec:ignore:AWS005
   load_balancer_type               = "network"
-  name_prefix                      = "fyde-"
+  name_prefix                      = "cga-"
   subnets                          = var.nlb_subnets
 
   lifecycle {
     create_before_destroy = true
   }
-
-  tags = merge(
-    {
-      "Name" = "fyde-access-proxy"
-    },
-    local.common_tags_map
-  )
 }
 
 resource "aws_lb_listener" "nlb_listener" {
   load_balancer_arn = aws_lb.nlb.arn
-  port              = var.fyde_access_proxy_public_port
+  port              = var.cloudgen_access_proxy_public_port
   protocol          = "TCP"
 
   lifecycle {
@@ -55,14 +62,14 @@ resource "aws_lb_listener" "nlb_listener" {
 
 resource "aws_lb_target_group" "nlb_target_group" {
   deregistration_delay = 60
-  name_prefix          = "fyde-"
-  port                 = var.fyde_access_proxy_public_port
+  name_prefix          = "cga-"
+  port                 = var.cloudgen_access_proxy_public_port
   protocol             = "TCP"
   vpc_id               = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
   health_check {
     interval          = 30
-    port              = var.fyde_access_proxy_public_port
+    port              = var.cloudgen_access_proxy_public_port
     protocol          = "TCP"
     healthy_threshold = 3
   }
@@ -70,13 +77,6 @@ resource "aws_lb_target_group" "nlb_target_group" {
   lifecycle {
     create_before_destroy = true
   }
-
-  tags = merge(
-    {
-      "Name" = "fyde-access-proxy"
-    },
-    local.common_tags_map
-  )
 }
 
 #
@@ -87,8 +87,8 @@ resource "aws_lb_target_group" "nlb_target_group" {
 # You cannot allow traffic from clients to targets through the load balancer using the security groups for the clients in the security groups for the targets.
 # Use the client CIDR blocks in the target security groups instead.
 resource "aws_security_group" "inbound" {
-  name        = "fyde-access-proxy-inbound"
-  description = "Inbound traffic for Fyde Access Proxy"
+  name        = "cga-proxy-${random_string.prefix.result}-inbound"
+  description = "Inbound traffic for CloudGen Access Proxy"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
   ingress {
@@ -106,45 +106,35 @@ resource "aws_security_group" "inbound" {
     cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:AWS009
   }
 
-  tags = merge(
-    {
-      "Name" = "fyde-access-proxy-inbound"
-    },
-    local.common_tags_map
-  )
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}-inbound"
+  }
 }
 
 resource "aws_security_group" "resources" {
-  name        = "fyde-access-proxy-resources"
-  description = "Use this group to allow Fyde Access Proxy access to internal resources"
+  name        = "cga-proxy-${random_string.prefix.result}-resources"
+  description = "Use this group to allow CloudGen Access Proxy to access internal resources"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
-  tags = merge(
-    {
-      "Name" = "fyde-access-proxy-resources"
-    },
-    local.common_tags_map
-  )
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}-resources"
+  }
 }
 
 resource "aws_security_group" "redis" {
   count = local.redis_enabled ? 1 : 0
 
-  name        = "fyde-access-proxy-redis"
-  description = "Used to allow FydeAccessProxy access to redis"
+  name        = "cga-proxy-${random_string.prefix.result}-redis"
+  description = "Used to allow CloudGen Access proxy to redis"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
-  tags = merge(
-    {
-      "Name" = "fyde-access-proxy-redis"
-    },
-    local.common_tags_map
-  )
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}-redis"
+  }
 }
 
 resource "aws_security_group_rule" "redis" {
   count = local.redis_enabled ? 1 : 0
-
 
   description       = "Allow ingress to redis port from group members"
   type              = "ingress"
@@ -184,11 +174,11 @@ resource "aws_autoscaling_group" "asg" {
     [
       {
         "key"                 = "Name"
-        "value"               = "fyde-access-proxy"
+        "value"               = aws_launch_configuration.launch_config.name
         "propagate_at_launch" = true
       },
     ],
-    local.common_tags_asg,
+    local.common_tags_asg
   )
 }
 
@@ -196,14 +186,15 @@ resource "aws_autoscaling_group" "asg" {
 # AMI
 #
 
-data "aws_ami" "fyde_access_proxy" {
-  count = var.asg_ami == "fyde" ? 1 : 0
+data "aws_ami" "ami" {
+  count = var.asg_ami == "amazonlinux2" ? 1 : 0
 
   most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["amazonlinux-2-base_*"]
+    values = ["amzn2-ami-hvm*"]
   }
 
   filter {
@@ -211,7 +202,16 @@ data "aws_ami" "fyde_access_proxy" {
     values = ["hvm"]
   }
 
-  owners = ["766535289950"]
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
 }
 
 #
@@ -221,10 +221,10 @@ data "aws_ami" "fyde_access_proxy" {
 resource "aws_launch_configuration" "launch_config" {
   associate_public_ip_address = var.launch_cfg_associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.profile.id
-  image_id                    = coalesce(data.aws_ami.fyde_access_proxy[0].id, var.asg_ami)
+  image_id                    = coalesce(data.aws_ami.ami[0].id, var.asg_ami)
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
-  name_prefix                 = "fyde-access-proxy-"
+  name_prefix                 = "cga-proxy-${random_string.prefix.result}-"
   security_groups = compact([
     aws_security_group.inbound.id,
     aws_security_group.resources.id,
@@ -232,22 +232,25 @@ resource "aws_launch_configuration" "launch_config" {
   ])
   user_data = <<-EOT
   #!/bin/bash
-  set -xeuo pipefail
-  echo "RateLimitBurst=10000" >> /etc/systemd/journald.conf
-  systemctl restart systemd-journald.service
   %{~if var.cloudwatch_logs_enabled~}
+  # Install CloudWatch Agent
   curl -sL "https://url.fyde.me/config-ec2-cloudwatch-logs" | bash -s -- \
-    -l "/aws/ec2/FydeAccessProxy" \
+    -l "${aws_cloudwatch_log_group.cloudgen_access_proxy[0].name}" \
     -r "${var.aws_region}"
   %{~endif~}
-  curl -sL "https://url.fyde.me/install-fyde-proxy-linux" | bash -s -- \
+  # Install CloudGen Access Proxy
+  curl -sL "https://url.fyde.me/proxy-linux" | bash -s -- \
     -u \
   %{~if local.redis_enabled~}
     -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
     -s "${aws_elasticache_replication_group.redis[0].port}" \
   %{~endif~}
-    -p "${var.fyde_access_proxy_public_port}" \
-    -l "${var.fyde_proxy_level}"
+    -p "${var.cloudgen_access_proxy_public_port}" \
+    -l "${var.cloudgen_access_proxy_level}" \
+    -e "FYDE_PREFIX=cga_proxy_${random_string.prefix.result}_"
+  # Harden instance and reboot
+  curl -sL "https://url.fyde.me/harden-linux" | bash -s --
+  shutdown -r now
   EOT
 
   root_block_device {
@@ -286,119 +289,119 @@ resource "aws_autoscaling_notification" "notification" {
 #
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "fyde-access-proxy-profile"
+  name = "cga-proxy-${random_string.prefix.result}-profile"
   role = aws_iam_role.role.name
 }
 
 resource "aws_iam_role" "role" {
-  name        = "fyde-access-proxy-role"
-  description = "Role used for the Fyde Access Proxy instances"
+  name        = "cga-proxy-${random_string.prefix.result}-role"
+  description = "Role used for the CloudGen Access Proxy instances"
   path        = "/"
 
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [{
-        "Sid": "",
-        "Effect": "Allow",
-        "Action": "sts:AssumeRole",
-        "Principal": {
-            "Service": "ec2.amazonaws.com"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AssumeRole"
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
         }
-    }]
-}
-EOF
+      }
+    ]
+  })
+
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}-role"
+  }
 }
 
-resource "aws_iam_role_policy" "fyde_secrets" {
-  name = "fyde-access-proxy-fyde-secrets"
+resource "aws_iam_role_policy" "cloudgen_access_proxy_secrets" {
+  name = "cga-proxy-${random_string.prefix.result}-secrets"
   role = aws_iam_role.role.id
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "GetFydeSecrets",
-      "Effect": "Allow",
-      "Action": [
-        "secretsmanager:DescribeSecret",
-        "secretsmanager:GetSecretValue"
-      ],
-      "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:fyde_*"
-    }
-  ]
-}
-EOF
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "GetSecrets"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:cga_proxy_${random_string.prefix.result}_*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role_policy" "cloudwatch_logs" {
   count = var.cloudwatch_logs_enabled ? 1 : 0
 
-  name = "fyde-access-proxy-cloudwatch-logs"
+  name = "cga-proxy-${random_string.prefix.result}-cloudwatch-logs"
   role = aws_iam_role.role.id
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "CloudWatchLogGroup",
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "${aws_cloudwatch_log_group.fyde_access_proxy[0].arn}"
-    },
-    {
-      "Sid": "CloudWatchLogStreams",
-      "Effect": "Allow",
-      "Action": [
-        "logs:DescribeLogStreams"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "CloudWatchLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "${aws_cloudwatch_log_group.cloudgen_access_proxy[0].arn}:*"
+      },
+      {
+        Sid    = "CloudWatchLogStreams"
+        Effect = "Allow"
+        Action = [
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role_policy" "redis" {
   count = local.redis_enabled ? 1 : 0
 
-  name = "fyde-access-proxy-redis"
+  name = "cga-proxy-${random_string.prefix.result}-redis"
   role = aws_iam_role.role.id
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "DiscoverRedisCluster",
-      "Effect": "Allow",
-      "Action": [
-        "elasticache:DescribeCacheClusters"
-      ],
-      "Resource": "arn:aws:elasticache:${var.aws_region}:${data.aws_caller_identity.current.account_id}:replicationgroup:${aws_elasticache_replication_group.redis[0].id}"
-    }
-  ]
-}
-EOF
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "DiscoverRedisCluster"
+        Effect = "Allow"
+        Action = [
+          "elasticache:DescribeCacheClusters"
+        ]
+        Resource = "arn:aws:elasticache:${var.aws_region}:${data.aws_caller_identity.current.account_id}:replicationgroup:${aws_elasticache_replication_group.redis[0].id}"
+      }
+    ]
+  })
 }
 
 #
 # CloudWatch
 #
 
-resource "aws_cloudwatch_log_group" "fyde_access_proxy" {
+resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" {
   count = var.cloudwatch_logs_enabled ? 1 : 0
 
-  name              = "/aws/ec2/FydeAccessProxy"
+  name              = "/aws/ec2/cga-proxy-${random_string.prefix.result}"
   retention_in_days = var.cloudWatch_logs_retention_in_days
 
-  tags = local.common_tags_map
+  tags = {
+    Name = "/aws/ec2/cga-proxy-${random_string.prefix.result}"
+  }
 }
 
 #
@@ -410,8 +413,8 @@ resource "aws_elasticache_replication_group" "redis" {
 
   automatic_failover_enabled    = true
   engine                        = "redis"
-  replication_group_id          = "FydeAccessProxy"
-  replication_group_description = "Redis for Fyde Access Proxy"
+  replication_group_id          = "cga-proxy-${random_string.prefix.result}"
+  replication_group_description = "Redis for CloudGen Access Proxy"
   node_type                     = "cache.t2.micro"
   number_cache_clusters         = 2
   subnet_group_name             = aws_elasticache_subnet_group.redis[0].name
@@ -419,27 +422,21 @@ resource "aws_elasticache_replication_group" "redis" {
   port                          = 6379
   at_rest_encryption_enabled    = false #tfsec:ignore:AWS035
   transit_encryption_enabled    = false #tfsec:ignore:AWS036
+  multi_az_enabled              = true
 
-  tags = local.common_tags_map
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}"
+  }
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
   count = local.redis_enabled ? 1 : 0
 
-  name        = "FydeAccessProxy"
-  description = "Redis Subnet Group for Fyde Access Proxy"
+  name        = "cga-proxy-${random_string.prefix.result}"
+  description = "Redis Subnet Group for CloudGen Access Proxy"
   subnet_ids  = coalescelist(var.redis_subnets, var.asg_subnets)
-}
 
-# Workaround until https://github.com/terraform-providers/terraform-provider-aws/pull/13909 is merged
-# From https://github.com/terraform-providers/terraform-provider-aws/issues/13706#issuecomment-704331694
-resource "null_resource" "redis_multiaz_enable" {
-  count = local.redis_enabled ? 1 : 0
-
-  triggers = {
-    cache = aws_elasticache_replication_group.redis[0].id
-  }
-  provisioner "local-exec" {
-    command = "aws elasticache modify-replication-group --replication-group-id ${aws_elasticache_replication_group.redis[0].id} --multi-az-enabled --apply-immediately"
+  tags = {
+    Name = "cga-proxy-${random_string.prefix.result}"
   }
 }

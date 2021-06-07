@@ -1,41 +1,42 @@
 
 #
-# Fyde Access Proxy
+# CloudGen Access Proxy
 #
 
-variable "fyde_access_proxy_public_port" {
+variable "cloudgen_access_proxy_public_port" {
   description = "Public port for this proxy (must match the value configured in the console for this proxy)"
   type        = number
   default     = 443
 
   validation {
     condition = (
-      var.fyde_access_proxy_public_port >= 1 &&
-      var.fyde_access_proxy_public_port <= 65535
+      var.cloudgen_access_proxy_public_port >= 1 &&
+      var.cloudgen_access_proxy_public_port <= 65535
     )
     error_message = "Public port needs to be >= 1 and <= 65535."
   }
 }
 
-variable "fyde_access_proxy_token" {
-  description = "Fyde Access Proxy Token for this proxy (obtained from the console after proxy creation)"
-
+variable "cloudgen_access_proxy_token" {
+  description = "CloudGen Access Proxy Token for this proxy (obtained from the console after proxy creation)"
+  type        = string
+  sensitive   = true
   validation {
     condition = can(
       regex("^https://.+[.]fyde[.]com/proxies.+proxy_auth_token.+$",
-      var.fyde_access_proxy_token)
+      var.cloudgen_access_proxy_token)
     )
-    error_message = "Provided Fyde Access Proxy Token doesn't match the expected format."
+    error_message = "Provided CloudGen Access Proxy Token doesn't match the expected format."
   }
 }
 
-variable "fyde_proxy_level" {
-  description = "Set the Fyde Proxy orchestrator log level"
+variable "cloudgen_access_proxy_level" {
+  description = "Set the CloudGen Access Proxy orchestrator log level"
   type        = string
   default     = "info"
 
   validation {
-    condition     = can(regex("^(info|warning|error|critical|debug)$", var.fyde_proxy_level))
+    condition     = can(regex("^(info|warning|error|critical|debug)$", var.cloudgen_access_proxy_level))
     error_message = "AllowedValues: info, warning, error, critical or debug."
   }
 }
@@ -43,7 +44,7 @@ variable "fyde_proxy_level" {
 variable "module_version" {
   description = "Terraform module version"
   type        = string
-  default     = "v1.1.0"
+  default     = "v1.2.0"
 }
 
 #
@@ -76,15 +77,15 @@ variable "nlb_subnets" {
 
 variable "asg_ami" {
   description = <<EOF
-  Defaults to 'fyde' to use the AMI maintained and secured by Fyde.
-  Suported types are CentOS or AWS Linux based"
+  Uses linux AMI maintained by AWS by default.
+  Suported types are CentOS, Ubuntu or AWS Linux based.
   EOF
   type        = string
-  default     = "fyde"
+  default     = "amazonlinux2"
 
   validation {
-    condition     = can(regex("^(fyde|ami-.+)$", var.asg_ami))
-    error_message = "AllowedValues: fyde or AMI id starting with 'ami-'."
+    condition     = can(regex("^(amazonlinux2|ami-.+)$", var.asg_ami))
+    error_message = "AllowedValues: amazonlinux2 or AMI id starting with 'ami-'."
   }
 }
 
@@ -131,7 +132,7 @@ variable "launch_cfg_associate_public_ip_address" {
 }
 
 variable "launch_cfg_instance_type" {
-  description = "The type of instance to use (t2.micro, t2.small, t2.medium, etc)"
+  description = "The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc)"
   type        = string
   default     = "t2.small"
 }
@@ -172,4 +173,14 @@ variable "redis_subnets" {
   EOF
   type        = list(any)
   default     = []
+}
+
+#
+# Tags
+#
+
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
 }

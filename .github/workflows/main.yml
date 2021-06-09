@@ -56,6 +56,11 @@ jobs:
   security:
     name: Security
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      security-events: write
+      statuses: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2

@@ -1,5 +1,10 @@
 # Change Log
 
+## v1.2.1
+
+- [aws-asg] Update terraform versions.
+- [aws-asg] Require mininum terraform version instead of forcing minor version.
+
 ## v1.2.0
 
 All changes are compatible with the previous versions,

@@ -14,7 +14,7 @@ resource "random_string" "prefix" {
 # Enrollment token
 #
 
-resource "aws_secretsmanager_secret" "token" {
+resource "aws_secretsmanager_secret" "token" { #tfsec:ignore:AWS095
   name                    = "cga_proxy_${random_string.prefix.result}_enrollment_token"
   description             = "CloudGen Access Proxy Enrollment Token"
   recovery_window_in_days = 0
@@ -116,6 +116,14 @@ resource "aws_security_group" "resources" {
   description = "Use this group to allow CloudGen Access Proxy to access internal resources"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
+  egress {
+    description = "Allow outbound to self"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}-resources"
   }
@@ -128,21 +136,25 @@ resource "aws_security_group" "redis" {
   description = "Used to allow CloudGen Access proxy to redis"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
+  ingress {
+    description = "Allow ingress to redis port from group members"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    self        = true
+  }
+
+  egress {
+    description = "Allow outbound to self"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}-redis"
   }
-}
-
-resource "aws_security_group_rule" "redis" {
-  count = local.redis_enabled ? 1 : 0
-
-  description       = "Allow ingress to redis port from group members"
-  type              = "ingress"
-  from_port         = 6379
-  to_port           = 6379
-  protocol          = "tcp"
-  self              = true
-  security_group_id = aws_security_group.redis[0].id
 }
 
 #
@@ -393,7 +405,7 @@ resource "aws_iam_role_policy" "redis" {
 # CloudWatch
 #
 
-resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" {
+resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" { #tfsec:ignore:AWS089
   count = var.cloudwatch_logs_enabled ? 1 : 0
 
   name              = "/aws/ec2/cga-proxy-${random_string.prefix.result}"

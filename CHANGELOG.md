@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.2.2
+
+- [aws-asg] Add redis egress security group.
+
 ## v1.2.1
 
 - [aws-asg] Update terraform versions.

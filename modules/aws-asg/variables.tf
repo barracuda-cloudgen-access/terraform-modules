@@ -44,7 +44,7 @@ variable "cloudgen_access_proxy_level" {
 variable "module_version" {
   description = "Terraform module version"
   type        = string
-  default     = "v1.2.1"
+  default     = "v1.2.2"
 }
 
 #

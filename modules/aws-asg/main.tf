@@ -128,21 +128,25 @@ resource "aws_security_group" "redis" {
   description = "Used to allow CloudGen Access proxy to redis"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
+  ingress {
+    description = "Allow ingress to redis port from group members"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    self        = true
+  }
+
+  egress {
+    description = "Allow outbound to self"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}-redis"
   }
-}
-
-resource "aws_security_group_rule" "redis" {
-  count = local.redis_enabled ? 1 : 0
-
-  description       = "Allow ingress to redis port from group members"
-  type              = "ingress"
-  from_port         = 6379
-  to_port           = 6379
-  protocol          = "tcp"
-  self              = true
-  security_group_id = aws_security_group.redis[0].id
 }
 
 #

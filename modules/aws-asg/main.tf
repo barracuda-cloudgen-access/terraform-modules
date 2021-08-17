@@ -14,7 +14,7 @@ resource "random_string" "prefix" {
 # Enrollment token
 #
 
-resource "aws_secretsmanager_secret" "token" {
+resource "aws_secretsmanager_secret" "token" { #tfsec:ignore:AWS095
   name                    = "cga_proxy_${random_string.prefix.result}_enrollment_token"
   description             = "CloudGen Access Proxy Enrollment Token"
   recovery_window_in_days = 0
@@ -397,7 +397,7 @@ resource "aws_iam_role_policy" "redis" {
 # CloudWatch
 #
 
-resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" {
+resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" { #tfsec:ignore:AWS089
   count = var.cloudwatch_logs_enabled ? 1 : 0
 
   name              = "/aws/ec2/cga-proxy-${random_string.prefix.result}"

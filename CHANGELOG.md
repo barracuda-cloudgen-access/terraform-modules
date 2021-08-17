@@ -2,6 +2,7 @@
 
 ## v1.2.2
 
+- [aws-asg] Limit outbound to resource group.
 - [aws-asg] Add redis egress security group.
 
 ## v1.2.1

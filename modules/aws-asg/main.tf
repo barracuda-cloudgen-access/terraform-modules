@@ -116,6 +116,14 @@ resource "aws_security_group" "resources" {
   description = "Use this group to allow CloudGen Access Proxy to access internal resources"
   vpc_id      = data.aws_subnet.vpc_from_first_subnet.vpc_id
 
+  egress {
+    description = "Allow outbound to self"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}-resources"
   }

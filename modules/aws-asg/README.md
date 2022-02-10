@@ -68,7 +68,7 @@ No modules.
 | <a name="input_launch_cfg_associate_public_ip_address"></a> [launch\_cfg\_associate\_public\_ip\_address](#input\_launch\_cfg\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
 | <a name="input_launch_cfg_instance_type"></a> [launch\_cfg\_instance\_type](#input\_launch\_cfg\_instance\_type) | The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
 | <a name="input_launch_cfg_key_pair_name"></a> [launch\_cfg\_key\_pair\_name](#input\_launch\_cfg\_key\_pair\_name) | The name of the key pair to use | `string` | n/a | yes |
-| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v1.2.2"` | no |
+| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v1.2.3"` | no |
 | <a name="input_nlb_enable_cross_zone_load_balancing"></a> [nlb\_enable\_cross\_zone\_load\_balancing](#input\_nlb\_enable\_cross\_zone\_load\_balancing) | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | <a name="input_nlb_subnets"></a> [nlb\_subnets](#input\_nlb\_subnets) | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |
 | <a name="input_redis_subnets"></a> [redis\_subnets](#input\_redis\_subnets) | A list of subnet IDs to to use for the redis instances.<br>  At least two subnets on different Availability Zones must be provided | `list(any)` | `[]` | no |

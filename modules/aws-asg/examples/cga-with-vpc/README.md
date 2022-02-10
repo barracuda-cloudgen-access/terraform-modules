@@ -13,7 +13,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_cloudgen-access-proxy"></a> [cloudgen-access-proxy](#module\_cloudgen-access-proxy) | git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg | v1.2.2 |
+| <a name="module_cloudgen-access-proxy"></a> [cloudgen-access-proxy](#module\_cloudgen-access-proxy) | git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg | v1.2.3 |
 | <a name="module_key_pair"></a> [key\_pair](#module\_key\_pair) | terraform-aws-modules/key-pair/aws | 1.0.0 |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 3.0.0 |
 

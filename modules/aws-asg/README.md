@@ -79,3 +79,4 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_Network_Load_Balancer_DNS_Name"></a> [Network\_Load\_Balancer\_DNS\_Name](#output\_Network\_Load\_Balancer\_DNS\_Name) | Update the CloudGen Access Proxy in the Console with this DNS name |
+| <a name="output_Security_Group_for_Resources"></a> [Security\_Group\_for\_Resources](#output\_Security\_Group\_for\_Resources) | Use this group to allow CloudGen Access Proxy access to internal resources |

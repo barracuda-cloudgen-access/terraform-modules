@@ -6,8 +6,8 @@ No requirements.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 3.74.1 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 3.1.0 |
 
 ## Modules
 
@@ -35,3 +35,4 @@ No requirements.
 | Name | Description |
 |------|-------------|
 | <a name="output_Network_Load_Balancer_DNS_Name"></a> [Network\_Load\_Balancer\_DNS\_Name](#output\_Network\_Load\_Balancer\_DNS\_Name) | n/a |
+| <a name="output_Security_Group_for_Resources"></a> [Security\_Group\_for\_Resources](#output\_Security\_Group\_for\_Resources) | n/a |

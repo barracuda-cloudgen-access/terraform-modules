@@ -16,6 +16,12 @@ locals {
 
 provider "aws" {
   region = local.aws_region
+  default_tags {
+    tags = {
+      Owner       = "team"
+      Environment = "test"
+    }
+  }
 }
 
 #
@@ -23,10 +29,11 @@ provider "aws" {
 #
 
 module "cloudgen-access-proxy" {
-  source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=v1.2.2"
+  source = "../../"
 
   # More examples
   # run 'rm -rf .terraform/' after changing source
+  # source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=vx.x.x"
   # source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=<branch-name>"
   # source = "../"
 
@@ -51,8 +58,7 @@ module "cloudgen-access-proxy" {
   launch_cfg_key_pair_name = module.key_pair.key_pair_key_name
 
   tags = {
-    Environment = "test"
-    Team        = "awesome"
+    extra_tag = "extra-value"
   }
 }
 
@@ -68,7 +74,7 @@ output "Security_Group_for_Resources" {
 # SSH key for instances
 #
 
-# (!) The private key will be saves in the terraform state file
+# (!) The private key will be saved in the terraform state file
 resource "tls_private_key" "private_key" {
   algorithm = "RSA"
 }
@@ -127,7 +133,7 @@ module "vpc" {
   manage_default_security_group  = true
 
   tags = {
-    environment = local.application
+    extra_tag = "extra-value"
   }
 
   vpc_tags = {
@@ -139,8 +145,7 @@ resource "aws_default_route_table" "default" {
   default_route_table_id = module.vpc.default_route_table_id
 
   tags = {
-    Name        = "${local.application}-default"
-    environment = local.application
-    warning     = "This is created by AWS for the VPC and cannot be removed"
+    Name    = "${local.application}-default"
+    warning = "This is created by AWS for the VPC and cannot be removed"
   }
 }

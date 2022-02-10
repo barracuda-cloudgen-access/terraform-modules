@@ -15,7 +15,9 @@ Check the [Product Documentation](https://campus.barracuda.com/product/cloudgena
 ## Misc
 
 - This repository has [pre-commit](https://github.com/antonbabenko/pre-commit-terraform) configured
-  - Test all the pre-commit hooks with `pre-commit run -a`
+  - Test all the pre-commit hooks with:
+    - `docker run -v $(pwd):/lint -w /lint ghcr.io/antonbabenko/pre-commit-terraform:latest run -a`
+    - Cleanup, in case of plugin issues: `find . -name ".terraform*" -print0 | xargs -0 rm -r`
 - Test github actions with [nektos/act](https://github.com/nektos/act)
 
 ## Links

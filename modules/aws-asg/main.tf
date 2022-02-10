@@ -100,6 +100,7 @@ resource "aws_security_group" "inbound" {
   }
 
   egress {
+    description = "Allow outbound to all"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -239,7 +240,8 @@ resource "aws_launch_configuration" "launch_config" {
   name_prefix                 = "cga-proxy-${random_string.prefix.result}-"
 
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   security_groups = compact([

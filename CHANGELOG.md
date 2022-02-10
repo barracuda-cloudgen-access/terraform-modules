@@ -1,5 +1,15 @@
 # Change Log
 
+## v1.2.4
+
+- [aws-asg] Add missing key for metadata on launch config
+- [aws-asg] Add description for security group rule
+
+## v1.2.3
+
+- [aws-asg] Remove aws provider from the module and update examples
+- Update actions
+
 ## v1.2.2
 
 - [aws-asg] Limit outbound to resource group.

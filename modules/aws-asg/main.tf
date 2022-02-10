@@ -96,14 +96,14 @@ resource "aws_security_group" "inbound" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:AWS008
+    cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-vpc-no-public-ingress-sgr
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:AWS009
+    cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-vpc-no-public-egress-sgr
   }
 
   tags = {
@@ -237,11 +237,17 @@ resource "aws_launch_configuration" "launch_config" {
   instance_type               = var.launch_cfg_instance_type
   key_name                    = var.launch_cfg_key_pair_name
   name_prefix                 = "cga-proxy-${random_string.prefix.result}-"
+
+  metadata_options {
+    http_tokens = "required"
+  }
+
   security_groups = compact([
     aws_security_group.inbound.id,
     aws_security_group.resources.id,
     local.redis_enabled ? aws_security_group.redis[0].id : ""
   ])
+
   user_data = <<-EOT
   #!/bin/bash
   %{~if var.cloudwatch_logs_enabled~}

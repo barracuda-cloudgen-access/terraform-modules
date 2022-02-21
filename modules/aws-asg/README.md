@@ -6,7 +6,6 @@
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 3.38 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3 |
-| <a name="requirement_template"></a> [template](#requirement\_template) | ~> 2 |
 
 ## Providers
 

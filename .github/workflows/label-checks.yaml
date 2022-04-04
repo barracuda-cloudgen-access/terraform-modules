@@ -1,0 +1,46 @@
+name: Label Merge Checks
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, labeled, unlabeled]
+
+jobs:
+  do-not-merge:
+    if: ${{ contains(github.event.*.labels.*.name, 'do not merge') }}
+    name: Prevent Merging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for label
+        run: |
+          echo "Pull request is labeled as 'do not merge'"
+          echo "This workflow fails so that the pull request cannot be merged"
+          exit 1
+  require-semver:
+    if: |
+      !(contains(github.event.*.labels.*.name, 'patch') ||
+      contains(github.event.*.labels.*.name, 'minor') ||
+      contains(github.event.*.labels.*.name, 'major') ||
+      contains(github.event.*.labels.*.name, 'skip-semver'))
+    name: Require Semver
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for label
+        run: |
+          echo "Pull request is missing semver label!"
+          echo "This workflow fails so that the pull request cannot be merged!"
+          exit 1
+  require-category:
+    if: |
+      !(contains(github.event.*.labels.*.name, 'feature') ||
+      contains(github.event.*.labels.*.name, 'fix') ||
+      contains(github.event.*.labels.*.name, 'chore') ||
+      contains(github.event.*.labels.*.name, 'docs') ||
+      contains(github.event.*.labels.*.name, 'dependencies'))
+    name: Require Category
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for label
+        run: |
+          echo "Pull request is missing category label (feature/fix/chore)!"
+          echo "This workflow fails so that the pull request cannot be merged!"
+          exit 1

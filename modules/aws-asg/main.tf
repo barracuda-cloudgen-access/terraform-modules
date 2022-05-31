@@ -254,12 +254,12 @@ resource "aws_launch_configuration" "launch_config" {
   #!/bin/bash
   %{~if var.cloudwatch_logs_enabled~}
   # Install CloudWatch Agent
-  curl -sL "https://url.fyde.me/config-ec2-cloudwatch-logs" | bash -s -- \
+  curl -sL "https://url.access.barracuda.com/config-ec2-cloudwatch-logs" | bash -s -- \
     -l "${aws_cloudwatch_log_group.cloudgen_access_proxy[0].name}" \
     -r "${var.aws_region}"
   %{~endif~}
   # Install CloudGen Access Proxy
-  curl -sL "https://url.fyde.me/proxy-linux" | bash -s -- \
+  curl -sL "https://url.access.barracuda.com/proxy-linux" | bash -s -- \
     -u \
   %{~if local.redis_enabled~}
     -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
@@ -269,7 +269,7 @@ resource "aws_launch_configuration" "launch_config" {
     -l "${var.cloudgen_access_proxy_level}" \
     -e "FYDE_PREFIX=cga_proxy_${random_string.prefix.result}_"
   # Harden instance and reboot
-  curl -sL "https://url.fyde.me/harden-linux" | bash -s --
+  curl -sL "https://url.access.barracuda.com/harden-linux" | bash -s --
   shutdown -r now
   EOT
 

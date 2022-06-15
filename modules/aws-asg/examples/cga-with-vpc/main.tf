@@ -55,7 +55,6 @@ module "cloudgen-access-proxy" {
 
   # Launch Configuration
   launch_tmpl_instance_type = "t3.small"
-  launch_cfg_key_pair_name = module.key_pair.key_pair_key_name
 
   tags = {
     extra_tag = "extra-value"
@@ -68,23 +67,6 @@ output "Network_Load_Balancer_DNS_Name" {
 
 output "Security_Group_for_Resources" {
   value = module.cloudgen-access-proxy.Security_Group_for_Resources
-}
-
-#
-# SSH key for instances
-#
-
-# (!) The private key will be saved in the terraform state file
-resource "tls_private_key" "private_key" {
-  algorithm = "RSA"
-}
-
-module "key_pair" {
-  source  = "terraform-aws-modules/key-pair/aws"
-  version = "1.0.0"
-
-  key_name   = local.application
-  public_key = tls_private_key.private_key.public_key_openssh
 }
 
 #

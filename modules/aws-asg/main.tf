@@ -361,6 +361,8 @@ resource "aws_iam_role" "role" {
     ]
   })
 
+  managed_policy_arns = var.ssm_allow_console ? ["arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"] : null
+
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}-role"
   }

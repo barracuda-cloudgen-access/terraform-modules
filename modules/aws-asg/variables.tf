@@ -137,9 +137,14 @@ variable "launch_tmpl_instance_type" {
   default     = "t3.small"
 }
 
-variable "launch_cfg_key_pair_name" {
-  description = "The name of the key pair to use"
-  type        = string
+#
+# AWS Systems Manager
+#
+
+variable "ssm_allow_console" {
+  description = "Configures Systems Manager Session Manager to allow console"
+  type        = bool
+  default     = true
 }
 
 #

@@ -44,7 +44,7 @@ variable "cloudgen_access_proxy_level" {
 variable "module_version" {
   description = "Terraform module version"
   type        = string
-  default     = "v1.2.4"
+  default     = "v2.0.0"
 }
 
 #
@@ -121,25 +121,45 @@ variable "asg_notification_arn_topic" {
   default     = ""
 }
 
+variable "asg_health_check_grace_period" {
+  description = <<EOF
+  The amount of time, in seconds, that Amazon EC2 Auto Scaling waits
+  before checking the health status of new instances.
+  EOF
+  type        = number
+  default     = 300
+}
+
 #
-# Launch Configuration
+# Launch Template
 #
 
-variable "launch_cfg_associate_public_ip_address" {
+variable "launch_tmpl_associate_public_ip_address" {
   description = "Associate a public ip address with an instance in a VPC"
   type        = bool
   default     = false
 }
 
-variable "launch_cfg_instance_type" {
-  description = "The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc)"
+variable "launch_tmpl_instance_type" {
+  description = "The type of instance to use (e.g. t3.micro, t3.small, t3.medium, etc)"
   type        = string
-  default     = "t2.small"
+  default     = "t3.small"
 }
 
-variable "launch_cfg_key_pair_name" {
-  description = "The name of the key pair to use"
-  type        = string
+#
+# AWS Systems Manager
+#
+
+variable "ssm_allow_console" {
+  description = "Configures Systems Manager Session Manager to allow console"
+  type        = bool
+  default     = true
+}
+
+variable "ssm_parameter_store" {
+  description = "Set to false to disable querying the Systems Manager Parameter Store for process arguments"
+  type        = bool
+  default     = true
 }
 
 #

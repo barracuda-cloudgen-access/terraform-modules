@@ -391,7 +391,7 @@ resource "aws_iam_role_policy" "cloudgen_access_proxy_secrets" {
   })
 }
 
-resource "aws_iam_role_policy" "cloudwatch_logs" {
+resource "aws_iam_role_policy" "cloudwatch_logs" { #tfsec:ignore:aws-iam-no-policy-wildcards
   count = var.cloudwatch_logs_enabled ? 1 : 0
 
   name = "cga-proxy-${random_string.prefix.result}-cloudwatch-logs"

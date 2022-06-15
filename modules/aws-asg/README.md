@@ -1,9 +1,10 @@
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 3.38 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.50 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3 |
 
@@ -11,9 +12,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 3.54.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.1.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.1.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.18.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.3.1 |
 
 ## Modules
 
@@ -33,7 +34,7 @@ No modules.
 | [aws_iam_role_policy.cloudgen_access_proxy_secrets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.cloudwatch_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.redis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_launch_configuration.launch_config](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_configuration) | resource |
+| [aws_launch_template.launch_template](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
 | [aws_lb.nlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
 | [aws_lb_listener.nlb_listener](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_lb_target_group.nlb_target_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
@@ -54,6 +55,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_asg_ami"></a> [asg\_ami](#input\_asg\_ami) | Uses linux AMI maintained by AWS by default.<br>  Suported types are CentOS, Ubuntu or AWS Linux based. | `string` | `"amazonlinux2"` | no |
 | <a name="input_asg_desired_capacity"></a> [asg\_desired\_capacity](#input\_asg\_desired\_capacity) | The number of Amazon EC2 instances that should be running in the auto scaling group | `number` | `3` | no |
+| <a name="input_asg_health_check_grace_period"></a> [asg\_health\_check\_grace\_period](#input\_asg\_health\_check\_grace\_period) | The amount of time, in seconds, that Amazon EC2 Auto Scaling waits<br>  before checking the health status of new instances. | `number` | `300` | no |
 | <a name="input_asg_max_size"></a> [asg\_max\_size](#input\_asg\_max\_size) | The minimum size of the auto scaling group | `number` | `3` | no |
 | <a name="input_asg_min_size"></a> [asg\_min\_size](#input\_asg\_min\_size) | The maximum size of the auto scaling group | `number` | `3` | no |
 | <a name="input_asg_notification_arn_topic"></a> [asg\_notification\_arn\_topic](#input\_asg\_notification\_arn\_topic) | Optional ARN topic to get Auto Scaling Group events | `string` | `""` | no |
@@ -64,13 +66,14 @@ No modules.
 | <a name="input_cloudgen_access_proxy_public_port"></a> [cloudgen\_access\_proxy\_public\_port](#input\_cloudgen\_access\_proxy\_public\_port) | Public port for this proxy (must match the value configured in the console for this proxy) | `number` | `443` | no |
 | <a name="input_cloudgen_access_proxy_token"></a> [cloudgen\_access\_proxy\_token](#input\_cloudgen\_access\_proxy\_token) | CloudGen Access Proxy Token for this proxy (obtained from the console after proxy creation) | `string` | n/a | yes |
 | <a name="input_cloudwatch_logs_enabled"></a> [cloudwatch\_logs\_enabled](#input\_cloudwatch\_logs\_enabled) | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
-| <a name="input_launch_tmpl_associate_public_ip_address"></a> [launch\_cfg\_associate\_public\_ip\_address](#input\_launch\_cfg\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
-| <a name="input_launch_tmpl_instance_type"></a> [launch\_cfg\_instance\_type](#input\_launch\_cfg\_instance\_type) | The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
-| <a name="input_launch_tmpl_key_pair_name"></a> [launch\_cfg\_key\_pair\_name](#input\_launch\_cfg\_key\_pair\_name) | The name of the key pair to use | `string` | n/a | yes |
-| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v1.2.4"` | no |
+| <a name="input_launch_tmpl_associate_public_ip_address"></a> [launch\_tmpl\_associate\_public\_ip\_address](#input\_launch\_tmpl\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
+| <a name="input_launch_tmpl_instance_type"></a> [launch\_tmpl\_instance\_type](#input\_launch\_tmpl\_instance\_type) | The type of instance to use (e.g. t3.micro, t3.small, t3.medium, etc) | `string` | `"t3.small"` | no |
+| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v2.0.0"` | no |
 | <a name="input_nlb_enable_cross_zone_load_balancing"></a> [nlb\_enable\_cross\_zone\_load\_balancing](#input\_nlb\_enable\_cross\_zone\_load\_balancing) | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | <a name="input_nlb_subnets"></a> [nlb\_subnets](#input\_nlb\_subnets) | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |
 | <a name="input_redis_subnets"></a> [redis\_subnets](#input\_redis\_subnets) | A list of subnet IDs to to use for the redis instances.<br>  At least two subnets on different Availability Zones must be provided | `list(any)` | `[]` | no |
+| <a name="input_ssm_allow_console"></a> [ssm\_allow\_console](#input\_ssm\_allow\_console) | Configures Systems Manager Session Manager to allow console | `bool` | `true` | no |
+| <a name="input_ssm_parameter_store"></a> [ssm\_parameter\_store](#input\_ssm\_parameter\_store) | Set to false to disable querying the Systems Manager Parameter Store for process arguments | `bool` | `true` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of tags to add to all resources | `map(string)` | `{}` | no |
 
 ## Outputs
@@ -79,3 +82,4 @@ No modules.
 |------|-------------|
 | <a name="output_Network_Load_Balancer_DNS_Name"></a> [Network\_Load\_Balancer\_DNS\_Name](#output\_Network\_Load\_Balancer\_DNS\_Name) | Update the CloudGen Access Proxy in the Console with this DNS name |
 | <a name="output_Security_Group_for_Resources"></a> [Security\_Group\_for\_Resources](#output\_Security\_Group\_for\_Resources) | Use this group to allow CloudGen Access Proxy access to internal resources |
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

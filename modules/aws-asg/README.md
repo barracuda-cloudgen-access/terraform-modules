@@ -64,9 +64,9 @@ No modules.
 | <a name="input_cloudgen_access_proxy_public_port"></a> [cloudgen\_access\_proxy\_public\_port](#input\_cloudgen\_access\_proxy\_public\_port) | Public port for this proxy (must match the value configured in the console for this proxy) | `number` | `443` | no |
 | <a name="input_cloudgen_access_proxy_token"></a> [cloudgen\_access\_proxy\_token](#input\_cloudgen\_access\_proxy\_token) | CloudGen Access Proxy Token for this proxy (obtained from the console after proxy creation) | `string` | n/a | yes |
 | <a name="input_cloudwatch_logs_enabled"></a> [cloudwatch\_logs\_enabled](#input\_cloudwatch\_logs\_enabled) | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
-| <a name="input_launch_cfg_associate_public_ip_address"></a> [launch\_cfg\_associate\_public\_ip\_address](#input\_launch\_cfg\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
-| <a name="input_launch_cfg_instance_type"></a> [launch\_cfg\_instance\_type](#input\_launch\_cfg\_instance\_type) | The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
-| <a name="input_launch_cfg_key_pair_name"></a> [launch\_cfg\_key\_pair\_name](#input\_launch\_cfg\_key\_pair\_name) | The name of the key pair to use | `string` | n/a | yes |
+| <a name="input_launch_tmpl_associate_public_ip_address"></a> [launch\_cfg\_associate\_public\_ip\_address](#input\_launch\_cfg\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
+| <a name="input_launch_tmpl_instance_type"></a> [launch\_cfg\_instance\_type](#input\_launch\_cfg\_instance\_type) | The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc) | `string` | `"t2.small"` | no |
+| <a name="input_launch_tmpl_key_pair_name"></a> [launch\_cfg\_key\_pair\_name](#input\_launch\_cfg\_key\_pair\_name) | The name of the key pair to use | `string` | n/a | yes |
 | <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v1.2.4"` | no |
 | <a name="input_nlb_enable_cross_zone_load_balancing"></a> [nlb\_enable\_cross\_zone\_load\_balancing](#input\_nlb\_enable\_cross\_zone\_load\_balancing) | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | <a name="input_nlb_subnets"></a> [nlb\_subnets](#input\_nlb\_subnets) | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |

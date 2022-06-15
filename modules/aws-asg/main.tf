@@ -168,16 +168,20 @@ resource "aws_autoscaling_group" "asg" {
   force_delete              = true
   health_check_grace_period = 60
   health_check_type         = "ELB"
-  launch_configuration      = aws_launch_configuration.launch_config.id
   max_size                  = var.asg_max_size
   metrics_granularity       = "1Minute"
   min_size                  = var.asg_min_size
-  name                      = aws_launch_configuration.launch_config.name
+  name                      = aws_launch_template.launch_template.name
   target_group_arns         = [aws_lb_target_group.nlb_target_group.arn]
   termination_policies      = ["OldestInstance"]
   vpc_zone_identifier       = var.asg_subnets
   wait_for_capacity_timeout = "10m"
   protect_from_scale_in     = false
+
+  launch_template {
+    id      = aws_launch_template.launch_template.id
+    version = aws_launch_template.launch_template.latest_version
+  }
 
   lifecycle {
     create_before_destroy = true
@@ -187,7 +191,7 @@ resource "aws_autoscaling_group" "asg" {
     [
       {
         "key"                 = "Name"
-        "value"               = aws_launch_configuration.launch_config.name
+        "value"               = aws_launch_template.launch_template.name
         "propagate_at_launch" = true
       },
     ],
@@ -228,29 +232,58 @@ data "aws_ami" "ami" {
 }
 
 #
-# Launch Configuration
+# Launch Template
 #
 
-resource "aws_launch_configuration" "launch_config" {
-  associate_public_ip_address = var.launch_cfg_associate_public_ip_address
-  iam_instance_profile        = aws_iam_instance_profile.profile.id
-  image_id                    = coalesce(data.aws_ami.ami[0].id, var.asg_ami)
-  instance_type               = var.launch_cfg_instance_type
-  key_name                    = var.launch_cfg_key_pair_name
-  name_prefix                 = "cga-proxy-${random_string.prefix.result}-"
+resource "aws_launch_template" "launch_template" {
+  name_prefix = "cga-proxy-${random_string.prefix.result}-"
 
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      delete_on_termination = true
+      encrypted             = true
+      volume_size           = 8
+      volume_type           = "gp3"
+    }
   }
 
-  security_groups = compact([
-    aws_security_group.inbound.id,
-    aws_security_group.resources.id,
-    local.redis_enabled ? aws_security_group.redis[0].id : ""
-  ])
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.profile.arn
+  }
 
-  user_data = <<-EOT
+  image_id                             = coalesce(data.aws_ami.ami[0].id, var.asg_ami)
+  instance_initiated_shutdown_behavior = "terminate"
+  instance_type                        = var.launch_tmpl_instance_type
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_protocol_ipv6          = "disabled"
+    http_put_response_hop_limit = 3
+    http_tokens                 = "required"
+    instance_metadata_tags      = "enabled"
+  }
+
+  network_interfaces {
+    associate_public_ip_address = var.launch_tmpl_associate_public_ip_address
+    device_index                = 0
+    security_groups = compact([
+      aws_security_group.inbound.id,
+      aws_security_group.resources.id,
+      local.redis_enabled ? aws_security_group.redis[0].id : ""
+    ])
+  }
+
+  tag_specifications {
+    resource_type = "volume"
+
+    tags = {
+      Name = "cga-proxy-${random_string.prefix.result}"
+    }
+  }
+
+  user_data = base64encode(<<-EOT
   #!/bin/bash
   %{~if var.cloudwatch_logs_enabled~}
   # Install CloudWatch Agent
@@ -272,11 +305,7 @@ resource "aws_launch_configuration" "launch_config" {
   curl -sL "https://url.access.barracuda.com/harden-linux" | bash -s --
   shutdown -r now
   EOT
-
-  root_block_device {
-    delete_on_termination = true
-    encrypted             = false #tfsec:ignore:AWS014
-  }
+  )
 
   lifecycle {
     create_before_destroy = true

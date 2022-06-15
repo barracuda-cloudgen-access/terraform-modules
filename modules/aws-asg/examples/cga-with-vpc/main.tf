@@ -54,7 +54,7 @@ module "cloudgen-access-proxy" {
   asg_subnets          = module.vpc.private_subnets
 
   # Launch Configuration
-  launch_cfg_instance_type = "t3.small"
+  launch_tmpl_instance_type = "t3.small"
   launch_cfg_key_pair_name = module.key_pair.key_pair_key_name
 
   tags = {

@@ -122,19 +122,19 @@ variable "asg_notification_arn_topic" {
 }
 
 #
-# Launch Configuration
+# Launch Template
 #
 
-variable "launch_cfg_associate_public_ip_address" {
+variable "launch_tmpl_associate_public_ip_address" {
   description = "Associate a public ip address with an instance in a VPC"
   type        = bool
   default     = false
 }
 
-variable "launch_cfg_instance_type" {
-  description = "The type of instance to use (e.g. t2.micro, t2.small, t2.medium, etc)"
+variable "launch_tmpl_instance_type" {
+  description = "The type of instance to use (e.g. t3.micro, t3.small, t3.medium, etc)"
   type        = string
-  default     = "t2.small"
+  default     = "t3.small"
 }
 
 variable "launch_cfg_key_pair_name" {

@@ -56,6 +56,9 @@ module "cloudgen-access-proxy" {
   # Launch Configuration
   launch_tmpl_instance_type = "t3.small"
 
+  # AWS Systems Manager
+  ssm_parameter_store = false
+
   tags = {
     extra_tag = "extra-value"
   }

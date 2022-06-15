@@ -294,6 +294,9 @@ resource "aws_launch_template" "launch_template" {
   # Install CloudGen Access Proxy
   curl -sL "https://url.access.barracuda.com/proxy-linux" | bash -s -- \
     -u \
+  %{~if !var.ssm_parameter_store~}
+    -e "DISABLE_AWS_SSM=1" \
+  %{~endif~}
   %{~if local.redis_enabled~}
     -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
     -s "${aws_elasticache_replication_group.redis[0].port}" \

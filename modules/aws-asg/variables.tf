@@ -156,6 +156,12 @@ variable "ssm_allow_console" {
   default     = true
 }
 
+variable "ssm_parameter_store" {
+  description = "Set to false to disable querying the Systems Manager Parameter Store for process arguments"
+  type        = bool
+  default     = true
+}
+
 #
 # CloudWatch
 #

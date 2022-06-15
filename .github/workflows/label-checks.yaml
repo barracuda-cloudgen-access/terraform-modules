@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Check for label
         run: |
-          echo "Pull request is labeled as 'do not merge'"
-          echo "This workflow fails so that the pull request cannot be merged"
+          echo "Pull request is labeled as 'do not merge'!"
+          echo "This workflow fails so that the pull request cannot be merged!"
           exit 1
   require-semver:
     if: |
@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Check for label
         run: |
-          echo "Pull request is missing semver label!"
+          echo "Pull request is missing semver label! (patch/minor/major/skip-semver)!"
           echo "This workflow fails so that the pull request cannot be merged!"
           exit 1
   require-category:
@@ -41,6 +41,6 @@ jobs:
     steps:
       - name: Check for label
         run: |
-          echo "Pull request is missing category label (feature/fix/chore)!"
+          echo "Pull request is missing category label (feature/fix/chore/docs/dependencies)!"
           echo "This workflow fails so that the pull request cannot be merged!"
           exit 1

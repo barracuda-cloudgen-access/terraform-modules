@@ -166,7 +166,7 @@ resource "aws_autoscaling_group" "asg" {
   default_cooldown          = 120
   desired_capacity          = var.asg_desired_capacity
   force_delete              = true
-  health_check_grace_period = 60
+  health_check_grace_period = var.asg_health_check_grace_period
   health_check_type         = "ELB"
   max_size                  = var.asg_max_size
   metrics_granularity       = "1Minute"

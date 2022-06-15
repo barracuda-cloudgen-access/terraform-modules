@@ -121,6 +121,15 @@ variable "asg_notification_arn_topic" {
   default     = ""
 }
 
+variable "asg_health_check_grace_period" {
+  description = <<EOF
+  The amount of time, in seconds, that Amazon EC2 Auto Scaling waits
+  before checking the health status of new instances.
+  EOF
+  type        = number
+  default     = 300
+}
+
 #
 # Launch Template
 #

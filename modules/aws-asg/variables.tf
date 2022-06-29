@@ -23,7 +23,7 @@ variable "cloudgen_access_proxy_token" {
   sensitive   = true
   validation {
     condition = can(
-      regex("^https://.+[.]fyde[.]com/proxies.+proxy_auth_token.+$",
+      regex("^https:\\/\\/[a-zA-Z0-9.-]+\\.(fyde\\.com|access\\.barracuda\\.com)\\/proxies/v[0-9]+\\/enrollment\\/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}\\?proxy_auth_token=[0-9a-zA-Z]+&tenant_id=[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
       var.cloudgen_access_proxy_token)
     )
     error_message = "Provided CloudGen Access Proxy Token doesn't match the expected format."
@@ -44,7 +44,7 @@ variable "cloudgen_access_proxy_level" {
 variable "module_version" {
   description = "Terraform module version"
   type        = string
-  default     = "v2.0.0"
+  default     = "v2.0.1"
 }
 
 #

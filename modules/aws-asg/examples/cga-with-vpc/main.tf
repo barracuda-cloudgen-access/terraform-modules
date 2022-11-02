@@ -78,7 +78,7 @@ output "Security_Group_for_Resources" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.0.0"
+  version = "3.18.1"
 
   name = local.application
 

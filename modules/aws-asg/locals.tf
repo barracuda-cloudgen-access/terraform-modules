@@ -14,16 +14,4 @@ locals {
     },
     var.tags
   )
-
-  common_tags_asg = null_resource.tags_as_list_of_maps.*.triggers
-}
-
-resource "null_resource" "tags_as_list_of_maps" {
-  count = length(keys(local.common_tags_map))
-
-  triggers = {
-    "key"                 = keys(local.common_tags_map)[count.index]
-    "value"               = values(local.common_tags_map)[count.index]
-    "propagate_at_launch" = true
-  }
 }

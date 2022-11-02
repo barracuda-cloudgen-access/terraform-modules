@@ -7,15 +7,30 @@ updates:
     schedule:
       interval: monthly
       day: wednesday
+    labels:
+      - chore
+      - dependencies
+      - github_actions
+      - patch
   - package-ecosystem: terraform
     directory: modules/aws-asg
     open-pull-requests-limit: 5
     schedule:
       interval: monthly
       day: wednesday
+    labels:
+      - chore
+      - dependencies
+      - patch
+      - terraform
   - package-ecosystem: terraform
-    directory: modules/aws-asg/examples
+    directory: modules/aws-asg/examples/cga-with-vpc
     open-pull-requests-limit: 5
     schedule:
       interval: monthly
       day: wednesday
+    labels:
+      - chore
+      - dependencies
+      - patch
+      - terraform

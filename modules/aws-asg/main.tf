@@ -6,7 +6,7 @@ resource "random_string" "prefix" {
   length  = 6
   lower   = true
   upper   = true
-  number  = true
+  numeric = true
   special = false
 }
 
@@ -187,16 +187,19 @@ resource "aws_autoscaling_group" "asg" {
     create_before_destroy = true
   }
 
-  tags = concat(
-    [
+  dynamic "tag" {
+    for_each = merge(
+      local.common_tags_map,
       {
-        "key"                 = "Name"
-        "value"               = aws_launch_template.launch_template.name
-        "propagate_at_launch" = true
-      },
-    ],
-    local.common_tags_asg
-  )
+        Name = aws_launch_template.launch_template.name
+      }
+    )
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+  }
 }
 
 #
@@ -283,32 +286,22 @@ resource "aws_launch_template" "launch_template" {
     }
   }
 
-  user_data = base64encode(<<-EOT
-  #!/bin/bash
-  %{~if var.cloudwatch_logs_enabled~}
-  # Install CloudWatch Agent
-  curl -sL "https://url.access.barracuda.com/config-ec2-cloudwatch-logs" | bash -s -- \
-    -l "${aws_cloudwatch_log_group.cloudgen_access_proxy[0].name}" \
-    -r "${var.aws_region}"
-  %{~endif~}
-  # Install CloudGen Access Proxy
-  curl -sL "https://url.access.barracuda.com/proxy-linux" | bash -s -- \
-    -u \
-  %{~if !var.ssm_parameter_store~}
-    -e "DISABLE_AWS_SSM=1" \
-  %{~endif~}
-  %{~if local.redis_enabled~}
-    -r "${aws_elasticache_replication_group.redis[0].primary_endpoint_address}" \
-    -s "${aws_elasticache_replication_group.redis[0].port}" \
-  %{~endif~}
-    -p "${var.cloudgen_access_proxy_public_port}" \
-    -l "${var.cloudgen_access_proxy_level}" \
-    -e "FYDE_PREFIX=cga_proxy_${random_string.prefix.result}_"
-  # Harden instance and reboot
-  curl -sL "https://url.access.barracuda.com/harden-linux" | bash -s --
-  shutdown -r now
-  EOT
-  )
+  # tflint-ignore: terraform_deprecated_index
+  user_data = base64encode(templatefile(
+    "${path.module}/templates/userdata.sh.tpl",
+    {
+      cloudwatch_logs_enabled           = var.cloudwatch_logs_enabled,
+      aws_cloudwatch_log_group          = aws_cloudwatch_log_group.cloudgen_access_proxy[0].name,
+      aws_region                        = var.aws_region,
+      ssm_parameter_store               = var.ssm_parameter_store,
+      redis_enabled                     = local.redis_enabled,
+      redis_primary_endpoint_address    = aws_elasticache_replication_group.redis[0].primary_endpoint_address,
+      redis_port                        = aws_elasticache_replication_group.redis[0].port,
+      cloudgen_access_proxy_public_port = var.cloudgen_access_proxy_public_port,
+      cloudgen_access_proxy_level       = var.cloudgen_access_proxy_level,
+      random_string_prefix_result       = random_string.prefix.result,
+    }
+  ))
 
   lifecycle {
     create_before_destroy = true
@@ -465,18 +458,18 @@ resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" { #tfsec:ignore:AWS0
 resource "aws_elasticache_replication_group" "redis" {
   count = local.redis_enabled ? 1 : 0
 
-  automatic_failover_enabled    = true
-  engine                        = "redis"
-  replication_group_id          = "cga-proxy-${random_string.prefix.result}"
-  replication_group_description = "Redis for CloudGen Access Proxy"
-  node_type                     = "cache.t2.micro"
-  number_cache_clusters         = 2
-  subnet_group_name             = aws_elasticache_subnet_group.redis[0].name
-  security_group_ids            = [aws_security_group.redis[0].id]
-  port                          = 6379
-  at_rest_encryption_enabled    = false #tfsec:ignore:AWS035
-  transit_encryption_enabled    = false #tfsec:ignore:AWS036
-  multi_az_enabled              = true
+  automatic_failover_enabled = true
+  engine                     = "redis"
+  replication_group_id       = "cga-proxy-${random_string.prefix.result}"
+  description                = "Redis for CloudGen Access Proxy"
+  node_type                  = "cache.t2.micro"
+  num_cache_clusters         = 2
+  subnet_group_name          = aws_elasticache_subnet_group.redis[0].name
+  security_group_ids         = [aws_security_group.redis[0].id]
+  port                       = 6379
+  at_rest_encryption_enabled = false #tfsec:ignore:AWS035
+  transit_encryption_enabled = false #tfsec:ignore:AWS036
+  multi_az_enabled           = true
 
   tags = {
     Name = "cga-proxy-${random_string.prefix.result}"

@@ -5,16 +5,14 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.50 |
-| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.24.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.3.2 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.37.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.4.3 |
 
 ## Modules
 
@@ -43,7 +41,6 @@ No modules.
 | [aws_security_group.inbound](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.redis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [null_resource.tags_as_list_of_maps](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_string.prefix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -68,7 +65,7 @@ No modules.
 | <a name="input_cloudwatch_logs_enabled"></a> [cloudwatch\_logs\_enabled](#input\_cloudwatch\_logs\_enabled) | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
 | <a name="input_launch_tmpl_associate_public_ip_address"></a> [launch\_tmpl\_associate\_public\_ip\_address](#input\_launch\_tmpl\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
 | <a name="input_launch_tmpl_instance_type"></a> [launch\_tmpl\_instance\_type](#input\_launch\_tmpl\_instance\_type) | The type of instance to use (e.g. t3.micro, t3.small, t3.medium, etc) | `string` | `"t3.small"` | no |
-| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v2.0.1"` | no |
+| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v2.0.2"` | no |
 | <a name="input_nlb_enable_cross_zone_load_balancing"></a> [nlb\_enable\_cross\_zone\_load\_balancing](#input\_nlb\_enable\_cross\_zone\_load\_balancing) | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | <a name="input_nlb_subnets"></a> [nlb\_subnets](#input\_nlb\_subnets) | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |
 | <a name="input_redis_subnets"></a> [redis\_subnets](#input\_redis\_subnets) | A list of subnet IDs to to use for the redis instances.<br>  At least two subnets on different Availability Zones must be provided | `list(any)` | `[]` | no |

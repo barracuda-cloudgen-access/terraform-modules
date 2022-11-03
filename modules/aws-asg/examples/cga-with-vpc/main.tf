@@ -2,6 +2,7 @@
 # Variables
 #
 
+# Using the same token on both modules for test
 variable "cloudgen_access_proxy_token" {
   type      = string
   sensitive = true
@@ -28,7 +29,52 @@ provider "aws" {
 # CloudGen Access Proxy
 #
 
-module "cloudgen-access-proxy" {
+module "cloudgen-access-proxy-single" {
+  source = "../../"
+
+  # More examples
+  # run 'rm -rf .terraform/' after changing source
+  # source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=vx.x.x"
+  # source = "git::git@github.com:barracuda-cloudgen-access/terraform-modules.git//modules/aws-asg?ref=<branch-name>"
+  # source = "../"
+
+  # CloudGen Access Proxy
+  cloudgen_access_proxy_public_port = 443
+  cloudgen_access_proxy_token       = var.cloudgen_access_proxy_token
+
+  # AWS
+  aws_region = local.aws_region
+
+  # Network Load Balancing
+  nlb_subnets = module.vpc.public_subnets
+
+  # Auto Scaling Group
+  asg_desired_capacity = 1
+  asg_min_size         = 1
+  asg_max_size         = 1
+  asg_subnets          = module.vpc.private_subnets
+
+  # Launch Configuration
+  launch_tmpl_instance_type = "t3.small"
+
+  # AWS Systems Manager
+  ssm_parameter_store = false
+
+  tags = {
+    extra_tag = "extra-value"
+  }
+}
+
+output "cloudgen-access-proxy-single" {
+
+  value = {
+    Network_Load_Balancer_DNS_Name = module.cloudgen-access-proxy-single.Network_Load_Balancer_DNS_Name
+    Security_Group_for_Resources   = module.cloudgen-access-proxy-single.Security_Group_for_Resources
+  }
+}
+
+
+module "cloudgen-access-proxy-ha" {
   source = "../../"
 
   # More examples
@@ -64,12 +110,12 @@ module "cloudgen-access-proxy" {
   }
 }
 
-output "Network_Load_Balancer_DNS_Name" {
-  value = module.cloudgen-access-proxy.Network_Load_Balancer_DNS_Name
-}
+output "cloudgen-access-proxy-ha" {
 
-output "Security_Group_for_Resources" {
-  value = module.cloudgen-access-proxy.Security_Group_for_Resources
+  value = {
+    Network_Load_Balancer_DNS_Name = module.cloudgen-access-proxy-ha.Network_Load_Balancer_DNS_Name
+    Security_Group_for_Resources   = module.cloudgen-access-proxy-ha.Security_Group_for_Resources
+  }
 }
 
 #

@@ -16,7 +16,8 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_cloudgen-access-proxy"></a> [cloudgen-access-proxy](#module\_cloudgen-access-proxy) | ../../ | n/a |
+| <a name="module_cloudgen-access-proxy-ha"></a> [cloudgen-access-proxy-ha](#module\_cloudgen-access-proxy-ha) | ../../ | n/a |
+| <a name="module_cloudgen-access-proxy-single"></a> [cloudgen-access-proxy-single](#module\_cloudgen-access-proxy-single) | ../../ | n/a |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 3.18.1 |
 
 ## Resources
@@ -29,12 +30,12 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cloudgen_access_proxy_token"></a> [cloudgen\_access\_proxy\_token](#input\_cloudgen\_access\_proxy\_token) | n/a | `string` | n/a | yes |
+| <a name="input_cloudgen_access_proxy_token"></a> [cloudgen\_access\_proxy\_token](#input\_cloudgen\_access\_proxy\_token) | Using the same token on both modules for test | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_Network_Load_Balancer_DNS_Name"></a> [Network\_Load\_Balancer\_DNS\_Name](#output\_Network\_Load\_Balancer\_DNS\_Name) | n/a |
-| <a name="output_Security_Group_for_Resources"></a> [Security\_Group\_for\_Resources](#output\_Security\_Group\_for\_Resources) | n/a |
+| <a name="output_cloudgen-access-proxy-ha"></a> [cloudgen-access-proxy-ha](#output\_cloudgen-access-proxy-ha) | n/a |
+| <a name="output_cloudgen-access-proxy-single"></a> [cloudgen-access-proxy-single](#output\_cloudgen-access-proxy-single) | n/a |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

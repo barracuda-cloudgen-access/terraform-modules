@@ -65,7 +65,7 @@ No modules.
 | <a name="input_cloudwatch_logs_enabled"></a> [cloudwatch\_logs\_enabled](#input\_cloudwatch\_logs\_enabled) | Set to true to send '/var/log/message' logs to CloudWatch | `bool` | `true` | no |
 | <a name="input_launch_tmpl_associate_public_ip_address"></a> [launch\_tmpl\_associate\_public\_ip\_address](#input\_launch\_tmpl\_associate\_public\_ip\_address) | Associate a public ip address with an instance in a VPC | `bool` | `false` | no |
 | <a name="input_launch_tmpl_instance_type"></a> [launch\_tmpl\_instance\_type](#input\_launch\_tmpl\_instance\_type) | The type of instance to use (e.g. t3.micro, t3.small, t3.medium, etc) | `string` | `"t3.small"` | no |
-| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v2.0.2"` | no |
+| <a name="input_module_version"></a> [module\_version](#input\_module\_version) | Terraform module version | `string` | `"v2.0.3"` | no |
 | <a name="input_nlb_enable_cross_zone_load_balancing"></a> [nlb\_enable\_cross\_zone\_load\_balancing](#input\_nlb\_enable\_cross\_zone\_load\_balancing) | Configure cross zone load balancing for the NLB | `bool` | `false` | no |
 | <a name="input_nlb_subnets"></a> [nlb\_subnets](#input\_nlb\_subnets) | A list of public subnet IDs to attach to the LB. Use Public Subnets only | `list(string)` | n/a | yes |
 | <a name="input_redis_subnets"></a> [redis\_subnets](#input\_redis\_subnets) | A list of subnet IDs to to use for the redis instances.<br>  At least two subnets on different Availability Zones must be provided | `list(any)` | `[]` | no |

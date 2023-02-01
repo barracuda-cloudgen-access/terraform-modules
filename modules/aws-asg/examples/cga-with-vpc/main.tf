@@ -124,7 +124,7 @@ output "cloudgen-access-proxy-ha" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.18.1"
+  version = "3.19.0"
 
   name = local.application
 

@@ -19,9 +19,12 @@ resource "aws_secretsmanager_secret" "token" { #tfsec:ignore:AWS095
   description             = "CloudGen Access Proxy Enrollment Token"
   recovery_window_in_days = 0
 
-  tags = {
-    Name = "cga_proxy_${random_string.prefix.result}_enrollment_token"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga_proxy_${random_string.prefix.result}_enrollment_token"
+    }
+  )
 }
 
 resource "aws_secretsmanager_secret_version" "token" {
@@ -43,6 +46,10 @@ resource "aws_lb" "nlb" {
   lifecycle {
     create_before_destroy = true
   }
+
+  tags = merge(
+    local.common_tags_map
+  )
 }
 
 resource "aws_lb_listener" "nlb_listener" {
@@ -77,6 +84,10 @@ resource "aws_lb_target_group" "nlb_target_group" {
   lifecycle {
     create_before_destroy = true
   }
+
+  tags = merge(
+    local.common_tags_map
+  )
 }
 
 #
@@ -107,9 +118,12 @@ resource "aws_security_group" "inbound" {
     cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-vpc-no-public-egress-sgr
   }
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}-inbound"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}-inbound"
+    }
+  )
 }
 
 resource "aws_security_group" "resources" {
@@ -125,9 +139,12 @@ resource "aws_security_group" "resources" {
     self        = true
   }
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}-resources"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}-resources"
+    }
+  )
 }
 
 resource "aws_security_group" "redis" {
@@ -153,9 +170,12 @@ resource "aws_security_group" "redis" {
     self        = true
   }
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}-redis"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}-redis"
+    }
+  )
 }
 
 #
@@ -281,9 +301,12 @@ resource "aws_launch_template" "launch_template" {
   tag_specifications {
     resource_type = "volume"
 
-    tags = {
-      Name = "cga-proxy-${random_string.prefix.result}"
-    }
+    tags = merge(
+      local.common_tags_map,
+      {
+        Name = "cga-proxy-${random_string.prefix.result}"
+      }
+    )
   }
 
   # tflint-ignore: terraform_deprecated_index
@@ -359,9 +382,12 @@ resource "aws_iam_role" "role" {
 
   managed_policy_arns = var.ssm_allow_console ? ["arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"] : null
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}-role"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}-role"
+    }
+  )
 }
 
 resource "aws_iam_role_policy" "cloudgen_access_proxy_secrets" {
@@ -446,9 +472,12 @@ resource "aws_cloudwatch_log_group" "cloudgen_access_proxy" { #tfsec:ignore:AWS0
   name              = "/aws/ec2/cga-proxy-${random_string.prefix.result}"
   retention_in_days = var.cloudWatch_logs_retention_in_days
 
-  tags = {
-    Name = "/aws/ec2/cga-proxy-${random_string.prefix.result}"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "/aws/ec2/cga-proxy-${random_string.prefix.result}"
+    }
+  )
 }
 
 #
@@ -471,9 +500,12 @@ resource "aws_elasticache_replication_group" "redis" {
   transit_encryption_enabled = false #tfsec:ignore:AWS036
   multi_az_enabled           = true
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}"
+    }
+  )
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
@@ -483,7 +515,10 @@ resource "aws_elasticache_subnet_group" "redis" {
   description = "Redis Subnet Group for CloudGen Access Proxy"
   subnet_ids  = coalescelist(var.redis_subnets, var.asg_subnets)
 
-  tags = {
-    Name = "cga-proxy-${random_string.prefix.result}"
-  }
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}"
+    }
+  )
 }

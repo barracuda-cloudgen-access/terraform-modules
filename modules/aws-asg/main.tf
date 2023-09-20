@@ -462,7 +462,7 @@ resource "aws_elasticache_replication_group" "redis" {
   engine                     = "redis"
   replication_group_id       = "cga-proxy-${random_string.prefix.result}"
   description                = "Redis for CloudGen Access Proxy"
-  node_type                  = "cache.t2.micro"
+  node_type                  = "cache.t4g.micro"
   num_cache_clusters         = 2
   subnet_group_name          = aws_elasticache_subnet_group.redis[0].name
   security_group_ids         = [aws_security_group.redis[0].id]

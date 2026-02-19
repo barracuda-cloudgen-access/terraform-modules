@@ -260,6 +260,12 @@ data "aws_ami" "ami" {
 
 resource "aws_launch_template" "launch_template" {
   name_prefix = "cga-proxy-${random_string.prefix.result}-"
+  tags = merge(
+    local.common_tags_map,
+    {
+      Name = "cga-proxy-${random_string.prefix.result}"
+    }
+  )
 
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -300,6 +306,17 @@ resource "aws_launch_template" "launch_template" {
 
   tag_specifications {
     resource_type = "volume"
+
+    tags = merge(
+      local.common_tags_map,
+      {
+        Name = "cga-proxy-${random_string.prefix.result}"
+      }
+    )
+  }
+
+  tag_specifications {
+    resource_type = "instance"
 
     tags = merge(
       local.common_tags_map,

@@ -7,6 +7,8 @@ on:
 
 jobs:
   security:
+    # Disabled 2026-03-23: tfsec uses aquasecurity/trivy which was subject to a supply chain compromise
+    if: false
     name: Security
     runs-on: ubuntu-latest
     permissions:

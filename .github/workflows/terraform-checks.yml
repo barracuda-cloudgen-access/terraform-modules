@@ -34,8 +34,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: tfsec
-        uses: tfsec/tfsec-sarif-action@master
+      # Disabled 2026-03-23: tfsec uses aquasecurity/trivy which was subject to a supply chain compromise
+      # - name: tfsec
+      #   uses: tfsec/tfsec-sarif-action@master
 
       - name: Terraform min/max versions
         id: minMax

@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# CVE-2026-31431 mitigation: blacklist algif_aead kernel module
+echo "blacklist algif_aead" > /etc/modprobe.d/disable-algif.conf
+rmmod algif_aead 2>/dev/null || true
+
 %{if cloudwatch_logs_enabled~}
 
 # Install CloudWatch Agent

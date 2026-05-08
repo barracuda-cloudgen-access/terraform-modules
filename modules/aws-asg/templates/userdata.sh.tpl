@@ -1,8 +1,11 @@
 #!/bin/bash
 
 # CVE-2026-31431 mitigation: blacklist algif_aead kernel module
-echo "blacklist algif_aead" > /etc/modprobe.d/disable-algif.conf
+# CVE-2026-43284/CVE-2026-43500 (DirtyFrag) mitigation: blacklist esp4, esp6, rxrpc
+printf 'blacklist algif_aead\ninstall esp4 /bin/false\ninstall esp6 /bin/false\ninstall rxrpc /bin/false\n' > /etc/modprobe.d/cve-blacklist.conf
 rmmod algif_aead 2>/dev/null || true
+rmmod esp4 esp6 rxrpc 2>/dev/null || true
+echo 3 > /proc/sys/vm/drop_caches
 
 %{if cloudwatch_logs_enabled~}
 

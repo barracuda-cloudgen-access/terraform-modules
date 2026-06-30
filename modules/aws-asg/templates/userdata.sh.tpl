@@ -6,6 +6,11 @@ printf 'blacklist algif_aead\ninstall esp4 /bin/false\ninstall esp6 /bin/false\n
 rmmod algif_aead 2>/dev/null || true
 rmmod esp4 esp6 rxrpc 2>/dev/null || true
 echo 3 > /proc/sys/vm/drop_caches
+# CVE-2026-46333 (ptrace LPE) mitigation: restrict ptrace to CAP_SYS_PTRACE; strip SUID on ssh-keysign
+mkdir -p /etc/sysctl.d
+printf 'kernel.yama.ptrace_scope = 2\n' > /etc/sysctl.d/99-cve-2026-46333.conf
+sysctl -w kernel.yama.ptrace_scope=2 >/dev/null
+SK=$(find /usr -name ssh-keysign -type f 2>/dev/null | head -1); [ -n "$SK" ] && chmod u-s "$SK" 2>/dev/null || true
 
 %{if cloudwatch_logs_enabled~}
 
